@@ -1,4 +1,5 @@
 # Lumina · AI HTML 幻灯片播放器
+本项目从开发到测试到上传完全由deepseek harness完成，作者仅起到给ai下指令的作用。
 
 把 AI 写的 HTML 幻灯片**直接播放**，并补齐演示必备的编辑、演讲者模式、画笔/荧光笔/激光笔标注能力。
 
@@ -102,7 +103,7 @@ html-slides-player/
 ## 参与贡献
 
 欢迎提 Issue 和 PR：见 [CONTRIBUTING.md](CONTRIBUTING.md)（含运行方式、测试方法、代码结构）。
-项目没有构建步骤——改完 `js/` 或 `css/` 直接刷新即可；改完请跑一遍 `npx electron tools/full-test.js`（当前 **174/174** 通过）。
+
 
 ## 开源许可
 
