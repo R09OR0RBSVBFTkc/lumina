@@ -323,6 +323,17 @@
         <div class="set-row"><span class="set-name">默认粗细</span><input type="range" id="set-pensize" min="1" max="40" value="4"></div>
       </div>
       <div class="set-group">
+        <div class="set-label">AI 生成</div>
+        <div class="set-row"><span class="set-name">最大生成长度（max_tokens）</span>
+          <select id="set-maxtokens" class="set-select">
+            <option value="8192">8192（节省，适合改一页）</option>
+            <option value="16384" selected>16384（推荐，整份演示）</option>
+            <option value="32768">32768（更长，需服务端支持）</option>
+          </select>
+        </div>
+        <div class="set-note">如果模型把额度花在了「思考」上导致正文为空，或整份演示常被截断，就调大这一项；服务端不支持的上限会自动降级。</div>
+      </div>
+      <div class="set-group">
         <div class="set-label">AI 模型（API Key 仅保存在本机）</div>
         <div class="ai-model-row">
           <select id="ai-model-select" class="ai-select" title="选择要使用的模型"></select>

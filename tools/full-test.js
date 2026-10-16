@@ -744,6 +744,10 @@ app.whenReady().then(async () => {
     check('欢迎页-点击后重新进入引导并清除已看过标记', r.shown === true && r.mark === 'null', JSON.stringify(r));
     await js(`(function(){ var o=document.getElementById('onboard'); if (o) o.classList.add('hidden'); })()`);
     await js(`localStorage.removeItem('hsp-onboarded')`);
+    r = await js(`(function(){ var d = HSP.ai; var sel = document.getElementById('set-maxtokens'); return { sel: !!sel, opts: sel ? sel.options.length : 0, dv: sel && sel.value }; })()`);
+    check('AI-max_tokens 选项存在(默认16384)', r.sel && r.opts === 3 && r.dv === '16384', JSON.stringify(r));
+    r = await js(`(function(){ try { var s = JSON.parse(localStorage.getItem('hsp-settings') || '{}'); return { has: ('maxTokens' in s), v: s.maxTokens }; } catch(e){ return { err: e.message }; } })()`);
+    check('AI-max_tokens 默认写入设置', r.has === false || r.v === 16384, JSON.stringify(r));
     /* ===== 25. AI：风格池 + 调用可靠性 ===== */
     r = await js(`(function(){ var s = HSP.ai && HSP.ai.styles; return { n: s ? s.length : 0, rnd: !!(HSP.ai && HSP.ai.pickRandomStyle), find: !!(HSP.ai && HSP.ai.findStyle) }; })()`);
     check('AI-风格池存在(≥8种 + 随机选择)', r.n >= 8 && r.rnd && r.find, JSON.stringify(r));

@@ -245,9 +245,10 @@ HSP.ai = (function () {
   /* 部分模型 max_tokens 上限只有 4096，传 8192 会被拒（HTTP 400）→ 自动降级重试 */
   async function chat(messages, cfg, timeoutMs) {
     if (!cfg.apiKey) throw new Error('请先填写 API Key');
-    var want = cfg.maxTokens || 8192;
+    var want = parseInt(cfg.maxTokens, 10) || 0;
+    if (!want || want <= 0) want = 16384;   // 默认给大一点，覆盖长篇 HTML + 推理模型的思考消耗
     var tries = [want];
-    [4096, 2048].forEach(function (v) { if (v < want && tries.indexOf(v) < 0) tries.push(v); });
+    [8192, 4096, 2048].forEach(function (v) { if (v < want && tries.indexOf(v) < 0) tries.push(v); });
     var lastErr = null;
     for (var i = 0; i < tries.length; i++) {
       var mt = tries[i];

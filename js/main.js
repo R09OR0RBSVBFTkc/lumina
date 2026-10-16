@@ -362,6 +362,9 @@
   }
   /* ---------- 设计风格选择（空 = 每次随机） ---------- */
   var STYLE_KEY = 'hsp-ai-style';
+  function readMaxTokens() {
+    try { var v = parseInt((loadSettings() || {}).maxTokens, 10); return (v >= 512 && v <= 131072) ? v : 16384; } catch (e) { return 16384; }
+  }
   function readStyleChoice() {
     try { return localStorage.getItem(STYLE_KEY) || ''; } catch (e) { return ''; }
   }
@@ -385,8 +388,8 @@
 
   function readAiConfig() {
     var m = activeModel();
-    if (!m) return { baseURL: '', apiKey: '', model: '', vision: true, style: readStyleChoice() };
-    return { baseURL: m.baseURL, apiKey: m.apiKey, model: m.model, vision: m.vision !== false, style: readStyleChoice() };
+    if (!m) return { baseURL: '', apiKey: '', model: '', vision: true, style: readStyleChoice(), maxTokens: readMaxTokens() };
+    return { baseURL: m.baseURL, apiKey: m.apiKey, model: m.model, vision: m.vision !== false, style: readStyleChoice(), maxTokens: readMaxTokens() };
   }
   function renderModelSelect() {
     var sel = $('ai-model-select');
@@ -556,7 +559,7 @@
   var SETTINGS_KEY = 'hsp-settings';
   var SETTING_DEFAULTS = {
     theme: 'light', clickNav: true, wheelNav: true,
-    defaultMode: 'view', barAutoHide: true, penColor: '#ff2d55', penSize: 4, proxy: ''
+    defaultMode: 'view', barAutoHide: true, penColor: '#ff2d55', penSize: 4, proxy: '', maxTokens: 16384
   };
   function loadSettings() {
     var raw = {};
@@ -619,6 +622,7 @@
     $('set-pencolor').value = s.penColor;
     $('set-pensize').value = s.penSize;
     if ($('set-proxy')) $('set-proxy').value = String((loadSettings() || {}).proxy || '');
+    if ($('set-maxtokens')) $('set-maxtokens').value = String((loadSettings() || {}).maxTokens || 16384);
     loadPromptIntoForm();
     renderModelSelect();
     showModelForm(false);
@@ -954,6 +958,12 @@
     ['set-theme', 'set-clicknav', 'set-wheelnav', 'set-defaultmode', 'set-barhide', 'set-pencolor', 'set-pensize'].forEach(function (id) {
       $(id).addEventListener('change', onSettingChange);
       if (id === 'set-pencolor' || id === 'set-pensize') $(id).addEventListener('input', onSettingChange);
+    });
+    $('set-maxtokens').addEventListener('change', function () {
+      var s = loadSettings();
+      s.maxTokens = parseInt(this.value, 10) || 16384;
+      saveSettings(s);
+      toast('最大生成长度已设为 ' + s.maxTokens);
     });
     $('set-proxy-save').addEventListener('click', function () {
       var v = $('set-proxy').value.trim();
