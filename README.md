@@ -45,7 +45,7 @@
 ## 如何运行
 
 ### 方式一：Windows 安装包（推荐）
-双击 `release/Lumina Setup 1.0.0.exe` 安装即可；也可直接运行 `release/win-unpacked/Lumina.exe`（免安装）。
+到 [**Releases**](https://github.com/R09OR0RBSVBFTkc/lumina/releases/latest) 下载 `Lumina Setup 1.0.0.exe` 安装即可。（安装包 75 MB，走 Release 分发，不进仓库。）
 
 ### 方式二：源码运行
 ```bash
@@ -102,7 +102,7 @@ html-slides-player/
 ## 参与贡献
 
 欢迎提 Issue 和 PR：见 [CONTRIBUTING.md](CONTRIBUTING.md)（含运行方式、测试方法、代码结构）。
-项目没有构建步骤——改完 `js/` 或 `css/` 直接刷新即可；改完请跑一遍 `npx electron tools/full-test.js`（当前 **174/174** 通过）。
+项目没有构建步骤——改完 `js/` 或 `css/` 直接刷新即可；改完请跑一遍 `npx electron tools/full-test.js`（当前 **176/176** 通过）。
 
 ## 开源许可
 
