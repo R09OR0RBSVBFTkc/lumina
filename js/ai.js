@@ -210,8 +210,25 @@ HSP.ai = (function () {
         throw err;
       }
       var data = await resp.json();
-      var content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-      if (!content) throw new Error('AI 未返回内容');
+      var choice = data && data.choices && data.choices[0];
+      var msg = choice && choice.message;
+      var content = msg && msg.content;
+      if (content && typeof content !== 'string') {
+        content = content.map(function (p) { return p && p.text ? p.text : ''; }).join('');
+      }
+      var reason = choice && choice.finish_reason;
+      if (!content) {
+        var err;
+        if (msg && msg.reasoning_content) {
+          err = new Error('模型把 token 都用在了思考（reasoning）上、没输出正文。请换用非推理模型（如 deepseek-chat 而不是 deepseek-reasoner），或把需求写简单些。');
+        } else if (reason === 'length') {
+          err = new Error('输出被截断（finish_reason=length）且没有正文。请把需求写简单些、减少页数，或换非推理模型。');
+        } else {
+          err = new Error('AI 未返回内容（finish_reason=' + reason + '）。常见原因：模型名不对、该模型不兼容 /chat/completions，或 token 全花在了思考上。');
+        }
+        try { err.status = 200; err.emptyContent = true; } catch (x) {}
+        throw err;
+      }
       return content;
     } catch (e) {
       if (e && e.name === 'AbortError') {
@@ -233,12 +250,17 @@ HSP.ai = (function () {
     [4096, 2048].forEach(function (v) { if (v < want && tries.indexOf(v) < 0) tries.push(v); });
     var lastErr = null;
     for (var i = 0; i < tries.length; i++) {
-      try { return await chatOnce(messages, cfg, timeoutMs, tries[i]); }
-      catch (e) {
-        lastErr = e;
-        var m = String((e && e.message) || '');
-        var retryable = (e && e.status === 400) && /max_?tokens|maximum context|too large|invalid_request|exceed/i.test(m);
-        if (!retryable || i === tries.length - 1) throw e;
+      var mt = tries[i];
+      for (var attempt = 0; attempt < 2; attempt++) {
+        try { return await chatOnce(messages, cfg, timeoutMs, mt); }
+        catch (e) {
+          lastErr = e;
+          if (e && e.emptyContent && attempt === 0) continue;   // 空内容：立即再试一次（偶发一次就成功）
+          var m = String((e && e.message) || '');
+          var downgrade = (e && e.status === 400) && /max_?tokens|maximum context|too large|invalid_request|exceed/i.test(m);
+          if (downgrade) break;                                  // 换更小的 max_tokens 档位
+          throw e;
+        }
       }
     }
     throw lastErr;
