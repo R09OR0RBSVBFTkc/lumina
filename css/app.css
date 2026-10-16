@@ -219,8 +219,6 @@ body.theater #controlbar{
 }
 body.theater #controlbar.collapsed{ transform:translateX(-50%) translateY(calc(100% - 12px)); opacity:.55; }
 body.theater #controlbar.collapsed:hover{ transform:translateX(-50%) translateY(0); opacity:1; }
-#btn-collapse-bar{ display:none; }
-body.theater #btn-collapse-bar{ display:inline-flex; }
 
 /* 对话框 */
 .modal{ position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.32); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }

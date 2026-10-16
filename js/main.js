@@ -993,11 +993,6 @@
       toast('已恢复默认设置');
     });
 
-    // 控制条收起（单击翻页默认开启，不再需要按钮）
-    $('btn-collapse-bar').addEventListener('click', function () {
-      $('controlbar').classList.toggle('collapsed');
-    });
-
     // 拖拽打开 / 粘贴 HTML
     window.addEventListener('dragover', function (e) { e.preventDefault(); });
     window.addEventListener('drop', function (e) {

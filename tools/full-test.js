@@ -508,12 +508,6 @@ app.whenReady().then(async () => {
     await js(`document.getElementById('btn-mode-view').click()`);
     r = await js(`({ mode:HSP.state.mode, bar: !document.getElementById('controlbar').classList.contains('hidden') })`);
     check('切回播放模式', r.mode === 'view' && r.bar === true, JSON.stringify(r));
-    await js(`document.getElementById('btn-collapse-bar').click()`);
-    r = await js(`document.getElementById('controlbar').classList.contains('collapsed')`);
-    check('控制条-收起', r === true);
-    await js(`document.getElementById('btn-collapse-bar').click()`);
-    r = await js(`document.getElementById('controlbar').classList.contains('collapsed')`);
-    check('控制条-展开', r === false);
     r = await js(`(function(){ var c=HSP.state.current; HSP.player.relocate(); return HSP.state.current === c; })()`);
     check('relocate-重新定位不改变页码', r === true);
 
