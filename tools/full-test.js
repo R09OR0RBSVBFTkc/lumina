@@ -468,6 +468,8 @@ app.whenReady().then(async () => {
     // 保存的 HTML 不应包含编辑注入层残留
     r = await js(`(function(){ var html=HSP.player.serialize(); return { noSel: html.indexOf('__hsp_sel') === -1, noTb: html.indexOf('__hsp_tb') === -1, noStyle: html.indexOf('__hsp_style') === -1, noMoving: html.indexOf('__hsp_moving') === -1 }; })()`);
     check('序列化-无编辑层残留', r.noSel && r.noTb && r.noStyle && r.noMoving, JSON.stringify(r));
+    r = await js(`(function(){ var d=HSP.player.doc(); return { injected: !!d.getElementById('__hsp_scrollbar'), clean: HSP.player.serialize().indexOf('__hsp_scrollbar') === -1 }; })()`);
+    check('播放-隐藏滚动条样式注入且序列化不残留', r.injected === true && r.clean === true, JSON.stringify(r));
     // 图标有效性：关键 SVG 图标必须有非零绘制区域（自动发现畸形路径）
     r = await js(`(function(){ var NS='http://www.w3.org/2000/svg'; var ids=['i-cursor','i-brush','i-highlighter','i-laser','i-eraser','i-pen','i-copy','i-layer-up','i-layer-down','i-trash','i-sparkles','i-folder']; var bad=[]; ids.forEach(function(id){ var svg=document.createElementNS(NS,'svg'); svg.setAttribute('class','ico'); svg.style.cssText='position:fixed;left:-9999px;top:0'; var u=document.createElementNS(NS,'use'); u.setAttribute('href','#'+id); svg.appendChild(u); document.body.appendChild(svg); var b=svg.getBBox(); if(!b || b.width<4 || b.height<4) bad.push(id); document.body.removeChild(svg); }); return bad; })()`);
     check('图标-SVG渲染有效', r.length === 0, 'bad=' + JSON.stringify(r));

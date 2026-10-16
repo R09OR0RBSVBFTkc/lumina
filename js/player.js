@@ -168,6 +168,7 @@ HSP.player = (function () {
             _applyDetect();
             state.loaded = true;
             _attachFrameNav();
+            _hideScrollbar();
             if (state.deckType === 'reveal') _hookReveal();
             current = _currentFromDeck();
             state.current = current;
@@ -304,6 +305,18 @@ HSP.player = (function () {
     });
   }
 
+  /* 播放时隐藏 iframe 内文档的滚动条（用户要求：删掉最右边那条滚轮条）。
+     注入独立 id，serialize 时清理，不污染用户文档 */
+  function _hideScrollbar() {
+    var d = doc();
+    if (!d || !d.head || d.getElementById('__hsp_scrollbar')) return;
+    var st = d.createElement('style');
+    st.id = '__hsp_scrollbar';
+    st.textContent = 'html,body{scrollbar-width:none!important;-ms-overflow-style:none!important}' +
+      'html::-webkit-scrollbar,body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}';
+    d.head.appendChild(st);
+  }
+
   function _hookReveal() {
     var R = win().Reveal;
     if (!R) return;
@@ -342,6 +355,7 @@ HSP.player = (function () {
     // 字符串级过滤注入层与光标类（不克隆 DOM，性能高、无副作用）
     var html = d.documentElement.outerHTML;
     html = html.replace(/<style[^>]*id="__hsp_style"[\s\S]*?<\/style>/g, '');
+    html = html.replace(/<style[^>]*id="__hsp_scrollbar"[\s\S]*?<\/style>/g, '');
     html = html.replace(/\s*__hsp_moving\b/g, '').replace(/class="\s*"/g, '');
     return '<!DOCTYPE html>\n' + html;
   }
