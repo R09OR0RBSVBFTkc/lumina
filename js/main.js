@@ -360,10 +360,33 @@
   function setActiveModel(id) {
     try { localStorage.setItem('hsp-ai-active', id); } catch (e) {}
   }
+  /* ---------- 设计风格选择（空 = 每次随机） ---------- */
+  var STYLE_KEY = 'hsp-ai-style';
+  function readStyleChoice() {
+    try { return localStorage.getItem(STYLE_KEY) || ''; } catch (e) { return ''; }
+  }
+  function fillStyleSelect() {
+    var sel = $('ai-style');
+    if (!sel || sel.__filled) return;
+    sel.innerHTML = '';
+    var rnd = document.createElement('option');
+    rnd.value = '';
+    rnd.textContent = '🎲 随机（每次不同，推荐）';
+    sel.appendChild(rnd);
+    ((HSP.ai && HSP.ai.styles) || []).forEach(function (st) {
+      var o = document.createElement('option');
+      o.value = st.id;
+      o.textContent = st.name;
+      sel.appendChild(o);
+    });
+    sel.__filled = true;
+    sel.value = readStyleChoice();
+  }
+
   function readAiConfig() {
     var m = activeModel();
-    if (!m) return { baseURL: '', apiKey: '', model: '', vision: true };
-    return { baseURL: m.baseURL, apiKey: m.apiKey, model: m.model, vision: m.vision !== false };
+    if (!m) return { baseURL: '', apiKey: '', model: '', vision: true, style: readStyleChoice() };
+    return { baseURL: m.baseURL, apiKey: m.apiKey, model: m.model, vision: m.vision !== false, style: readStyleChoice() };
   }
   function renderModelSelect() {
     var sel = $('ai-model-select');
@@ -511,6 +534,7 @@
     }
   }
   function openAi() {
+    fillStyleSelect();
     renderAiMaterials();
     updateAiCurrentLabel();
     if (!HSP.state.loaded) aiModeIs('new');
@@ -532,7 +556,7 @@
   var SETTINGS_KEY = 'hsp-settings';
   var SETTING_DEFAULTS = {
     theme: 'light', clickNav: true, wheelNav: true,
-    defaultMode: 'view', barAutoHide: true, penColor: '#ff2d55', penSize: 4
+    defaultMode: 'view', barAutoHide: true, penColor: '#ff2d55', penSize: 4, proxy: ''
   };
   function loadSettings() {
     var raw = {};
@@ -594,6 +618,7 @@
     $('set-barhide').checked = s.barAutoHide !== false;
     $('set-pencolor').value = s.penColor;
     $('set-pensize').value = s.penSize;
+    if ($('set-proxy')) $('set-proxy').value = String((loadSettings() || {}).proxy || '');
     loadPromptIntoForm();
     renderModelSelect();
     showModelForm(false);
@@ -612,6 +637,19 @@
     saveSettings(s);
     applySettings(s);
     if (HSP.annotate) HSP.annotate.render();
+  }
+  function styleNote() {
+    try {
+      var st = HSP.ai && HSP.ai.lastStyle && HSP.ai.lastStyle();
+      return st ? (' · 风格：' + st.name) : '';
+    } catch (e) { return ''; }
+  }
+  /* 网络代理：Electron 的请求默认不走系统代理，境外服务（OpenAI 等）会连不上 */
+  function applyProxy() {
+    if (!(window.hsp && window.hsp.setProxy)) return;
+    var v = '';
+    try { v = String((loadSettings() || {}).proxy || '').trim(); } catch (e) {}
+    try { window.hsp.setProxy(v); } catch (e) {}
   }
   function setAiStatus(msg, cls) {
     var s = $('ai-status');
@@ -728,7 +766,7 @@
         var isAll = (mode === 'all');
         var keepPage = HSP.state.current;
         openFromText(result, 'AI 生成的幻灯片.html', { keepAnnotations: isAll, gotoPage: isAll ? keepPage : 0 });
-        setAiStatus(isAll ? '已修改全部页面' : ('已生成 ' + HSP.state.total + ' 页'), 'ok');
+        setAiStatus((isAll ? '已修改全部页面' : ('已生成 ' + HSP.state.total + ' 页')) + styleNote(), 'ok');
         closeAi();
         toast(isAll ? '已按你的要求修改全部页面' : ('已生成 ' + HSP.state.total + ' 页 · 可再次打开 AI 助手继续调整'));
       }
@@ -825,6 +863,7 @@
       });
     });
     $('ob-skip').addEventListener('click', closeOnboard);
+    applyProxy();
     maybeShowOnboard();
 
     // 欢迎页直接进入选择领域引导（比藏在设置里好找），并清掉已看过标记
@@ -880,6 +919,12 @@
     $('welcome-ai').addEventListener('click', openAi);
     $('ai-cancel').addEventListener('click', closeAi);
     $('ai-go').addEventListener('click', runAi);
+    $('ai-style').addEventListener('change', function () {
+      try {
+        if (this.value) localStorage.setItem(STYLE_KEY, this.value);
+        else localStorage.removeItem(STYLE_KEY);
+      } catch (e) {}
+    });
     $('ai-add-image').addEventListener('click', function () { $('ai-img-file').click(); });
     $('ai-add-text').addEventListener('click', function () { $('ai-text-file').click(); });
     $('ai-img-file').addEventListener('change', function (e) { addAiImageFiles(e.target.files); e.target.value = ''; });
@@ -909,6 +954,15 @@
     ['set-theme', 'set-clicknav', 'set-wheelnav', 'set-defaultmode', 'set-barhide', 'set-pencolor', 'set-pensize'].forEach(function (id) {
       $(id).addEventListener('change', onSettingChange);
       if (id === 'set-pencolor' || id === 'set-pensize') $(id).addEventListener('input', onSettingChange);
+    });
+    $('set-proxy-save').addEventListener('click', function () {
+      var v = $('set-proxy').value.trim();
+      var s = loadSettings();
+      s.proxy = v;
+      saveSettings(s);
+      applyProxy();
+      $('set-proxy-hint').textContent = v ? ('已应用：' + v) : '已设为直连';
+      toast(v ? ('代理已应用：' + v) : '已改为直连');
     });
     $('set-prompt-save').addEventListener('click', savePrompt);
     $('set-prompt-reset').addEventListener('click', resetPrompt);

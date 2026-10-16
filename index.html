@@ -269,6 +269,10 @@
       </div>
     </div>
     <div class="ai-section">
+      <div class="ai-label">设计风格</div>
+      <select id="ai-style" class="ai-select" title="不选则每次随机，避免每次都长一个样"></select>
+    </div>
+    <div class="ai-section">
       <div class="ai-label">使用模型</div>
       <div class="ai-model-row">
         <span id="ai-current-model" class="ai-current">未配置模型</span>
@@ -357,6 +361,15 @@
             <button id="ai-cancel-model" class="btn small">取消</button>
             <span id="ai-model-hint" class="ai-hint"></span>
           </div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">网络代理</div>
+        <div class="set-note">Electron 的请求默认不走系统代理。如果你用 OpenAI 等境外服务、或本机开着代理软件（如 Clash 的 <b>127.0.0.1:7890</b>），在这里填写代理地址；国内服务（DeepSeek / Kimi / 通义 / 智谱）直连即可，留空。</div>
+        <input type="text" id="set-proxy" placeholder="例如 http://127.0.0.1:7890（留空 = 直连）">
+        <div class="set-row set-actions">
+          <button id="set-proxy-save" class="btn small primary">应用代理</button>
+          <span id="set-proxy-hint" class="ai-hint"></span>
         </div>
       </div>
       <div class="set-group">

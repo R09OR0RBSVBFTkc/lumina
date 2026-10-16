@@ -8,6 +8,28 @@ HSP.ai = (function () {
   var DEFAULT_BASE = 'https://api.openai.com/v1';
   var DEFAULT_MODEL = 'gpt-4o';
 
+  /* ---------- 设计风格池：用户不指定时随机取一个，从根上避免"每次生成都一个样" ---------- */
+  var STYLE_POOL = [
+    { id: 'minimal', name: '极简留白', desc: '大面积白/浅灰底，细无衬线字，极细分割线，留白占一半以上，几乎不用彩色，靠字重与间距建立层级。' },
+    { id: 'darktech', name: '科技暗色', desc: '近黑或深蓝底，青色/紫色霓虹强调，细边框卡片，发光质感，局部等宽字体。' },
+    { id: 'corp', name: '商务稳重', desc: '白或浅米底，深蓝主色配金色点缀，严谨栅格，数据卡片与表格为主，标题可用衬线体。' },
+    { id: 'magazine', name: '杂志排版', desc: '大号衬线标题、多栏文字、超大图片与色块穿插、页码与栏线，强编辑感。' },
+    { id: 'sketch', name: '手绘笔记', desc: '米黄纸张底，手写感标题，马克笔高亮，手绘箭头与方框，线条略不规则。' },
+    { id: 'chinese', name: '新中式', desc: '宣纸白与墨色，朱红点缀，竖排或书法标题，大留白，圆形与印章元素。' },
+    { id: 'bold', name: '大胆撞色', desc: '高饱和成对撞色（洋红+柠檬黄、电光蓝+橙），超大字号，几何色块切割版面。' },
+    { id: 'glass', name: '玻璃拟态', desc: '彩色渐变背景 + 毛玻璃半透明卡片 + 柔和大圆角 + 细微高光。' },
+    { id: 'dash', name: '数据仪表盘', desc: '深或浅底皆可，大量图表（折线/柱状/环形/进度环）+ 等宽数字 + 网格布局，信息密度高。' },
+    { id: 'pastel', name: '柔和渐变', desc: '低饱和马卡龙色渐变背景，圆润大圆角，柔和阴影，亲和力强。' },
+    { id: 'mono', name: '黑白灰+单强调色', desc: '全篇只用黑白灰，单一强调色点睛，克制的现代感。' },
+    { id: 'print', name: '复古印刷', desc: '做旧米色纸感，衬线体，双色油墨套印（如墨绿+砖红），网格与拓印纹理。' }
+  ];
+  function pickRandomStyle() { return STYLE_POOL[Math.floor(Math.random() * STYLE_POOL.length)]; }
+  function findStyle(id) {
+    for (var i = 0; i < STYLE_POOL.length; i++) if (STYLE_POOL[i].id === id) return STYLE_POOL[i];
+    return null;
+  }
+  var lastUsedStyle = null;
+
   /* ---------- 提示词 ---------- */
   function commonRules() {
     return [
@@ -17,6 +39,7 @@ HSP.ai = (function () {
       '· 用户要求的页数必须严格满足（说"8 页"就必须正好 8 页）。',
       '· 用户没指定页数时，按内容需要生成 8~12 页的完整叙事：封面 → 概览/目录 → 分节内容（多页）→ 数据或案例 → 结语。',
       '· 用户对风格、配色、气质的描述必须严格执行，不要强加你自己的偏好。',
+      '· 用户没指定风格时：先判断主题气质，再主动选择匹配的设计语言；不要每次都套用同一套，尤其别反复用「深色底 + 蓝紫渐变」。',
       '',
       '【内容质量：详实、有信息量】',
       '· 每一页都要有实质内容：3~5 个要点、数据、步骤或案例，禁止只有一句空洞标题的页面。',
@@ -63,8 +86,14 @@ HSP.ai = (function () {
     var c = savedPrompt();
     return c.trim() ? c : defaultPrompt();
   }
-  function buildSystem(mode) {
+  function buildSystem(mode, style) {
     var rules = [activePrompt()];
+    if (style && style.desc) {
+      rules.push('');
+      rules.push('【本次指定的设计风格：' + style.name + '】');
+      rules.push(style.desc);
+      rules.push('整份演示必须统一贯彻这个风格：配色、字体气质、图形语言、版式节奏都要贴合。');
+    }
     if (mode === 'page') {
       rules.push('当前任务：修改一份现有演示文稿的「某一页」。');
       rules.push('你只需输出这一页的 HTML —— 单个 <section class="slide"> ... </section>。');
@@ -156,11 +185,12 @@ HSP.ai = (function () {
   }
 
   /* ---------- 调用 ---------- */
-  async function chat(messages, cfg, timeoutMs) {
+  async function chatOnce(messages, cfg, timeoutMs, maxTokens) {
     if (!cfg.apiKey) throw new Error('请先填写 API Key');
     var base = (cfg.baseURL || DEFAULT_BASE).replace(/\/+$/, '');
     var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 180000);
+    var ms = timeoutMs || 300000;
+    var timer = setTimeout(function () { ctrl.abort(); }, ms);
     try {
       var resp = await fetch(base + '/chat/completions', {
         method: 'POST',
@@ -168,25 +198,50 @@ HSP.ai = (function () {
         body: JSON.stringify({
           model: cfg.model || DEFAULT_MODEL,
           messages: messages,
-          temperature: (cfg.temperature != null ? cfg.temperature : 0.6),
-          max_tokens: cfg.maxTokens || 8192
+          temperature: (cfg.temperature != null ? cfg.temperature : 0.85),
+          max_tokens: maxTokens
         }),
         signal: ctrl.signal
       });
       if (!resp.ok) {
         var et = ''; try { et = await resp.text(); } catch (e) {}
-        throw new Error('API 返回 ' + resp.status + (et ? '：' + et.slice(0, 240) : ''));
+        var err = new Error('API 返回 ' + resp.status + (et ? '：' + et.slice(0, 400) : ''));
+        try { err.status = resp.status; } catch (x) {}
+        throw err;
       }
       var data = await resp.json();
       var content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (!content) throw new Error('AI 未返回内容');
       return content;
     } catch (e) {
-      if (e && e.name === 'AbortError') throw new Error('请求超时，请稍后重试或检查网络');
+      if (e && e.name === 'AbortError') {
+        throw new Error('请求超时（' + Math.round(ms / 1000) + ' 秒没响应）。整份演示生成较慢，可稍后重试；若一直超时，先把需求写简单些，或检查网络与代理。');
+      }
+      if (!e.status && /Failed to fetch|NetworkError|net::|ERR_/i.test(String(e && e.message))) {
+        throw new Error('网络连接失败：访问不到 ' + base + '。若该服务在境外（如 OpenAI），请在「设置 → 网络代理」里填代理地址。');
+      }
       throw e;
     } finally {
       clearTimeout(timer);
     }
+  }
+  /* 部分模型 max_tokens 上限只有 4096，传 8192 会被拒（HTTP 400）→ 自动降级重试 */
+  async function chat(messages, cfg, timeoutMs) {
+    if (!cfg.apiKey) throw new Error('请先填写 API Key');
+    var want = cfg.maxTokens || 8192;
+    var tries = [want];
+    [4096, 2048].forEach(function (v) { if (v < want && tries.indexOf(v) < 0) tries.push(v); });
+    var lastErr = null;
+    for (var i = 0; i < tries.length; i++) {
+      try { return await chatOnce(messages, cfg, timeoutMs, tries[i]); }
+      catch (e) {
+        lastErr = e;
+        var m = String((e && e.message) || '');
+        var retryable = (e && e.status === 400) && /max_?tokens|maximum context|too large|invalid_request|exceed/i.test(m);
+        if (!retryable || i === tries.length - 1) throw e;
+      }
+    }
+    throw lastErr;
   }
 
   /* ---------- 从服务端自动获取可用模型列表（OpenAI 兼容 /models） ---------- */
@@ -217,10 +272,13 @@ HSP.ai = (function () {
 
   /* ---------- 主入口 ---------- */
   async function generate(desc, mode, ctx, materials, cfg) {
-    var system = buildSystem(mode);
+    // 用户没选风格时随机挑一种，避免"每次生成都一个样"
+    var style = findStyle(cfg.style) || pickRandomStyle();
+    lastUsedStyle = style;
+    var system = buildSystem(mode, style);
     var user = buildUser(desc, mode, ctx, materials, cfg.vision !== false);
     var messages = [{ role: 'system', content: system }, user];
-    var content = await chat(messages, cfg, 180000);
+    var content = await chat(messages, cfg, 300000);
     if (mode === 'page') {
       var page = extractPageHtml(content);
       if (!page) throw new Error('AI 未返回有效的页面 HTML，请重试');
@@ -233,7 +291,7 @@ HSP.ai = (function () {
         var more = await chat(messages.concat([
           { role: 'assistant', content: content },
           { role: 'user', content: '上面的输出被截断了（HTML 没有正常结束）。请严格从中断处继续输出剩余内容，不要重复已输出的部分，不要任何解释或代码围栏，直到 </html> 结束。' }
-        ]), cfg, 180000);
+        ]), cfg, 300000);
         if (!more || !more.trim()) break;
         content = content + '\n' + more;
         html = extractHtml(content);
@@ -249,6 +307,8 @@ HSP.ai = (function () {
     defaultPrompt: defaultPrompt, activePrompt: activePrompt, setPrompt: setPrompt, savedPrompt: savedPrompt, buildSystem: buildSystem,
     extractHtml: extractHtml,
     extractPageHtml: extractPageHtml,
+    styles: STYLE_POOL, pickRandomStyle: pickRandomStyle, findStyle: findStyle,
+    lastStyle: function () { return lastUsedStyle; },
     defaults: { base: DEFAULT_BASE, model: DEFAULT_MODEL }
   };
 })();

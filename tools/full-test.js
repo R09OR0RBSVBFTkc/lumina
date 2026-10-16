@@ -744,6 +744,15 @@ app.whenReady().then(async () => {
     check('欢迎页-点击后重新进入引导并清除已看过标记', r.shown === true && r.mark === 'null', JSON.stringify(r));
     await js(`(function(){ var o=document.getElementById('onboard'); if (o) o.classList.add('hidden'); })()`);
     await js(`localStorage.removeItem('hsp-onboarded')`);
+    /* ===== 25. AI：风格池 + 调用可靠性 ===== */
+    r = await js(`(function(){ var s = HSP.ai && HSP.ai.styles; return { n: s ? s.length : 0, rnd: !!(HSP.ai && HSP.ai.pickRandomStyle), find: !!(HSP.ai && HSP.ai.findStyle) }; })()`);
+    check('AI-风格池存在(≥8种 + 随机选择)', r.n >= 8 && r.rnd && r.find, JSON.stringify(r));
+    r = await js(`(function(){ var sys = HSP.ai.buildSystem('new', { id: 'minimal', name: '极简留白', desc: '大面积白底' }); return { hasName: sys.indexOf('极简留白') >= 0, hasDesc: sys.indexOf('大面积白底') >= 0 }; })()`);
+    check('AI-指定风格会注入系统提示词', r.hasName && r.hasDesc, JSON.stringify(r));
+    r = await js(`(function(){ var sel = document.getElementById('ai-style'); return { exists: !!sel, opts: sel ? sel.options.length : 0 }; })()`);
+    check('AI-风格下拉已填充(≥9 个选项)', r.exists && r.opts >= 9, JSON.stringify(r));
+    r = await js(`(function(){ return { p: !!document.getElementById('set-proxy'), save: !!document.getElementById('set-proxy-save') }; })()`);
+    check('AI-网络代理设置入口存在', r.p && r.save, JSON.stringify(r));
     /* ===== 19. 首启引导（选择行业）与多套示例 ===== */
     await js(`(function(){ var o=document.getElementById('onboard'); o.classList.remove('hidden'); })()`);
     await js(`localStorage.removeItem('hsp-onboarded')`);

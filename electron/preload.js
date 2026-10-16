@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('hsp', {
   closeStage: () => ipcRenderer.invoke('close-stage'),
   readClipboard: () => ipcRenderer.invoke('read-clipboard'),
   readSample: (name) => ipcRenderer.invoke('read-sample', name),
+  setProxy: (rules) => ipcRenderer.invoke('set-proxy', rules),
   postSync: (msg) => ipcRenderer.send('hsp-sync', msg),
   onSync: (cb) => ipcRenderer.on('hsp-sync', (e, msg) => cb(msg))
 });

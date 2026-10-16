@@ -1,5 +1,5 @@
 /* Lumina Electron 主进程 */
-const { app, BrowserWindow, ipcMain, dialog, screen, clipboard, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen, clipboard, Menu, session } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -137,6 +137,15 @@ ipcMain.handle('close-stage', () => {
   if (stageWindow && !stageWindow.isDestroyed()) { stageWindow.close(); }
   stageWindow = null;
   return true;
+});
+
+/* 网络代理：渲染进程把设置里的代理地址传进来（Electron 请求默认不走系统代理，境外服务会连不上） */
+ipcMain.handle('set-proxy', async (evt, rules) => {
+  try {
+    var r = String(rules || '').trim();
+    await session.defaultSession.setProxy(r ? { proxyRules: r } : { mode: 'direct' });
+    return true;
+  } catch (e) { return false; }
 });
 
 /* 跨窗口同步中继：把消息转发给其它所有窗口 */
