@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物理教学 · 从公式到运动</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#070a14;color:#e8ecf6;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.slide{width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:8vh 7vw;position:relative;overflow:hidden;box-sizing:border-box;border-bottom:1px solid rgba(255,255,255,.04)}
+.slide .glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(520px circle at var(--mx,50%) var(--my,35%),rgba(56,189,248,.15),transparent 62%)}
+.slide:hover .glow{opacity:1}
+.slide::before{content:"";position:absolute;width:66vw;height:66vw;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.12),transparent 62%);top:-28vw;right:-20vw;filter:blur(26px);pointer-events:none}
+.slide.alt::before{background:radial-gradient(circle,rgba(139,92,246,.13),transparent 62%);top:auto;bottom:-30vw;left:-18vw;right:auto}
+.inner{width:100%;max-width:1080px;position:relative;z-index:2}
+.eyebrow{font-size:12.5px;letter-spacing:.34em;text-transform:uppercase;font-weight:600;margin-bottom:20px;background:linear-gradient(90deg,#38bdf8,#818cf8,#a78bfa,#38bdf8);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 7s ease infinite}
+@keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+h1{font-size:clamp(38px,6.4vw,74px);font-weight:700;line-height:1.06;letter-spacing:-.03em;margin-bottom:22px}
+h2{font-size:clamp(27px,4.2vw,48px);font-weight:700;line-height:1.14;letter-spacing:-.02em;margin-bottom:16px}
+.lead{font-size:clamp(14.5px,1.6vw,19px);line-height:1.75;color:#a7b3cb;max-width:780px}
+.lead strong{color:#bae6fd;font-weight:600}
+.accent{color:#38bdf8}
+.kbd{display:inline-block;padding:2px 9px;border-radius:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:13px;font-family:ui-monospace,Menlo,monospace;color:#dbe4ff}
+body.anim [data-anim]{opacity:0;transform:translateY(24px);transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0)*85ms)}
+body.anim .slide.in [data-anim]{opacity:1;transform:none}
+body.anim .w{display:inline-block;opacity:0;transform:translateY(.7em) rotate(1.5deg);transition:opacity .5s ease,transform .65s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0)*70ms)}
+body.anim .slide.in .w{opacity:1;transform:none}
+.draw path,.draw line,.draw circle,.draw polyline,.draw ellipse{stroke-dasharray:var(--len,420);stroke-dashoffset:var(--len,420);transition:stroke-dashoffset 1.35s cubic-bezier(.45,.05,.2,1) .25s}
+body.anim .slide.in .draw path,body.anim .slide.in .draw line,body.anim .slide.in .draw circle,body.anim .slide.in .draw polyline,body.anim .slide.in .draw ellipse{stroke-dashoffset:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:15px;margin-top:34px}
+.card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:22px 20px}
+.card h3{font-size:17px;font-weight:650;margin-bottom:8px}
+.card p{font-size:14px;line-height:1.65;color:#98a4bd}
+.formula{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.22);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;color:#bae6fd;text-align:center}
+.stats{display:flex;flex-wrap:wrap;gap:32px;margin-top:30px}
+.stat .n{font-size:clamp(34px,4.6vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1;background:linear-gradient(135deg,#38bdf8,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.stat .u{font-size:18px;font-weight:600;color:#38bdf8}
+.stat .l{font-size:13px;color:#8b96ad;margin-top:7px}
+.foot{margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);color:#79859b;font-size:13px}
+.lab{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(238px,1fr);gap:18px;margin-top:24px}
+@media (max-width:880px){.lab{grid-template-columns:1fr}}
+.lab-canvas{background:linear-gradient(180deg,rgba(56,189,248,.07),rgba(15,23,42,.5));border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:10px;display:flex;align-items:center;justify-content:center}
+.lab-canvas svg{display:block;width:100%;height:auto}
+.lab-canvas canvas{display:block;width:100%;height:auto;border-radius:9px}
+.lab-panel{display:flex;flex-direction:column;gap:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label{font-size:12.5px;color:#98a4bd;display:flex;justify-content:space-between;gap:8px}
+.ctl label b{color:#7dd3fc;font-variant-numeric:tabular-nums;font-weight:600}
+.ctl input[type=range]{width:100%;accent-color:#38bdf8;cursor:pointer}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:3px}
+.readout div{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:10px;padding:7px 9px}
+.readout span{display:block;font-size:10.5px;color:#8b96ad;margin-bottom:2px}
+.readout b{font-size:14.5px;color:#e0f2fe;font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:8px;margin-top:3px}
+.go{flex:1;padding:10px;border:0;border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:#04121f;background:linear-gradient(135deg,#7dd3fc,#a5b4fc)}
+.ghost{flex:0 0 auto;padding:10px 13px;border:1px solid rgba(255,255,255,.18);border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#c7d2e6;background:rgba(255,255,255,.05)}
+.go:active,.ghost:active{transform:translateY(1px)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:11px;color:#8b96ad}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;margin-top:22px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 12px;text-align:left;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.08)}
+th{color:#8b96ad;font-weight:600;font-size:12px;letter-spacing:.03em}
+td b{color:#7dd3fc}
+input[type=range]{height:26px !important;margin:0;cursor:grab}
+input[type=range]:active{cursor:grabbing}
+input[type=range]::-webkit-slider-thumb{width:19px;height:19px;cursor:grab}
+input[type=range]:hover{filter:brightness(1.15)}
+@media (prefers-reduced-motion: reduce){
+  body.anim [data-anim],body.anim .w{opacity:1 !important;transform:none !important;transition:none !important}
+  .draw path,.draw line,.draw circle,.draw polyline,.draw ellipse{stroke-dashoffset:0 !important;transition:none !important}
+  .eyebrow{animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- 1. 封面 -->
+<section class="slide" data-title="封面：从公式到运动"
+  data-notes="开场：物理公式不是纸上的符号，它可以被画出来、被拖动、被验证。这份演示里的每个数字都是浏览器按公式现算的。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>PHYSICS · INTERACTIVE</div>
+    <h1><span data-split>公式不只是符号，</span><br><span class="accent" data-split>它能被画出来。</span></h1>
+    <p class="lead" data-anim>这份演示按「力学 → 波动」的顺序展开：先看抛体与单摆，再看波的干涉与衍射。<br>每个数字、每条曲线都是浏览器<strong>此刻</strong>按公式算出来的。</p>
+    <div class="foot" data-anim>按 <span class="kbd">→</span> 或滚动继续 · 第 3、6、7 页都可以动手调参数</div>
+  </div>
+</section>
+
+<!-- 2. 抛体运动的分解 -->
+<section class="slide alt" data-title="抛体运动：运动的分解"
+  data-notes="核心概念：抛体运动等于水平匀速加竖直匀加速。两条独立的一维运动合成出抛物线。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>PROJECTILE MOTION</div>
+    <h2 data-anim>把一个二维问题，拆成两个一维问题</h2>
+    <p class="lead" data-anim>忽略空气阻力时，抛体的水平方向不受力（匀速），竖直方向只受重力（匀加速）。两者互不干扰——这正是「运动分解」最漂亮的应用。</p>
+    <svg class="draw" viewBox="0 0 640 260" style="width:100%;max-width:640px;margin-top:26px;fill:none;stroke:#38bdf8;stroke-width:2.4;stroke-linecap:round" data-anim>
+      <line x1="40" y1="220" x2="600" y2="220" stroke="#334155" stroke-width="1.6" style="--len:600"/>
+      <line x1="40" y1="220" x2="40" y2="34" stroke="#334155" stroke-width="1.6" style="--len:220"/>
+      <polyline style="--len:700" points="40,220 120,150 190,104 250,80 320,84 390,116 460,172 530,220"/>
+      <line x1="120" y1="150" x2="120" y2="220" stroke="#818cf8" stroke-width="1.4" stroke-dasharray="4 5" style="--len:80"/>
+      <line x1="120" y1="150" x2="190" y2="150" stroke="#f472b6" stroke-width="1.4" stroke-dasharray="4 5" style="--len:80"/>
+      <text x="126" y="196" fill="#818cf8" font-size="12" stroke="none">竖直：匀加速</text>
+      <text x="196" y="144" fill="#f472b6" font-size="12" stroke="none">水平：匀速</text>
+    </svg>
+    <div class="grid">
+      <div class="card" data-anim><h3>水平方向</h3><p>无水平外力，速度恒定。</p><div class="formula">x = v₀·cos θ · t</div></div>
+      <div class="card" data-anim><h3>竖直方向</h3><p>只受重力，匀变速。</p><div class="formula">y = v₀·sin θ · t − ½g t²</div></div>
+      <div class="card" data-anim><h3>落地时间</h3><p>由竖直分量决定。</p><div class="formula">T = 2 v₀ sin θ / g</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 抛体交互实验室 -->
+<section class="slide" data-title="交互实验室：每抛一次留一道轨迹"
+  data-notes="重点页。坐标系是固定的（横轴 0 到 220 米，纵轴 0 到 90 米，等比），所以不同参数下的弹道可以叠加对比：每按一次发射就多留一条彩色轨迹，默认保留最近 6 条。参数范围已收窄，保证所有弹道都完整落在画面内。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>LIVE SIMULATION</div>
+    <h2 data-anim>每抛一次，留一道轨迹</h2>
+    <p class="lead" data-anim>坐标系<strong>固定</strong>（横轴 130 m、纵轴 65 m，等比），所以不同参数下的弹道能<strong>叠在一起直接对比</strong>。<br>调好参数点发射，就会留下一条彩色轨迹——再改参数发射，就能看出角度、初速度、重力各自的影响。</p>
+    <div class="lab" data-anim>
+      <div class="lab-canvas">
+        <svg id="proj-svg" viewBox="0 0 640 340">
+          <defs><linearGradient id="trail" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs>
+          <g stroke="rgba(148,163,184,.14)" stroke-width="1">
+            <line x1="40" y1="30" x2="613" y2="30"/><line x1="40" y1="90" x2="613" y2="90"/>
+            <line x1="40" y1="150" x2="613" y2="150"/><line x1="40" y1="210" x2="613" y2="210"/>
+          </g>
+          <g stroke="rgba(148,163,184,.14)" stroke-width="1">
+            <line x1="150" y1="288" x2="150" y2="30"/><line x1="260" y1="288" x2="260" y2="30"/>
+            <line x1="370" y1="288" x2="370" y2="30"/><line x1="480" y1="288" x2="480" y2="30"/><line x1="590" y1="288" x2="590" y2="30"/>
+          </g>
+          <line x1="40" y1="288" x2="613" y2="288" stroke="rgba(148,163,184,.55)" stroke-width="1.6"/>
+          <line x1="40" y1="288" x2="40" y2="28" stroke="rgba(148,163,184,.55)" stroke-width="1.6"/>
+          <g fill="#5b6b85" font-size="10.5">
+            <text x="259" y="303">50 m</text><text x="478" y="303">100 m</text>
+            <text x="6" y="160">30 m</text><text x="6" y="31">60 m</text>
+          </g>
+          <g id="proj-trails"></g>
+          <polyline id="proj-path" points="" fill="none" stroke="url(#trail)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+          <circle id="proj-ball" cx="40" cy="288" r="7" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2.5" opacity="0"/>
+          <text id="proj-hint" x="326" y="160" fill="#475569" font-size="13.5" text-anchor="middle">点「发射小球」按当前参数生成弹道</text>
+        </svg>
+      </div>
+      <div class="lab-panel">
+        <div class="ctl"><label>初速度 v₀ <b><span id="pv0">30</span> m/s</b></label><input id="p-v0" type="range" min="15" max="33" step="1" value="30"></div>
+        <div class="ctl"><label>抛射角 θ <b><span id="pth">45</span>°</b></label><input id="p-th" type="range" min="15" max="75" step="1" value="45"></div>
+        <div class="ctl"><label>重力 g <b><span id="pg">9.8</span> m/s²</b></label><input id="p-g" type="range" min="9" max="20" step="0.2" value="9.8"></div>
+        <div class="readout">
+          <div><span>射程 R</span><b id="p-out-r">—</b></div>
+          <div><span>最大高度 H</span><b id="p-out-h">—</b></div>
+          <div><span>飞行时间 T</span><b id="p-out-t">—</b></div>
+          <div><span>水平速度</span><b id="p-out-vx">—</b></div>
+        </div>
+        <div class="btns">
+          <button class="go" id="p-launch">▶ 发射并留下轨迹</button>
+          <button class="ghost" id="p-clear">清空</button>
+        </div>
+        <div class="legend"><span><i style="background:#7dd3fc"></i>最近一条</span><span><i style="background:#c4b5fd"></i>旧轨迹</span><span>保留最近 6 条</span></div>
+      </div>
+    </div>
+    <div class="foot" data-anim>建议对比：先 45° 发一次，再 25° 发一次，最后 70° 发一次——三条轨迹会叠在同一坐标系里，一眼看出差别。</div>
+  </div>
+</section>
+
+<!-- 4. 数据：射程随角度 -->
+<section class="slide alt" data-title="数据：射程随角度变化"
+  data-notes="用同一初速度下不同角度的射程数据，验证 45 度射程最大这一结论。数据由公式算出，和上一页的轨迹可以互相印证。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>DATA</div>
+    <h2 data-anim>同一初速度下，45° 射得最远</h2>
+    <p class="lead" data-anim>下表由 R = v₀²sin(2θ)/g 计算（v₀ = 30 m/s，g = 9.8 m/s²）。注意 30° 与 60° 的射程相同——它们互为余角；这也正是上一页轨迹能直接验证的结论。</p>
+    <div class="stats">
+      <div class="stat" data-anim><div class="n"><span data-count="91.8">0</span><span class="u">m</span></div><div class="l">45° 时的最大射程</div></div>
+      <div class="stat" data-anim><div class="n"><span data-count="4.33">0</span><span class="u">s</span></div><div class="l">对应飞行时间</div></div>
+      <div class="stat" data-anim><div class="n"><span data-count="45">0</span><span class="u">°</span></div><div class="l">射程最大角度</div></div>
+    </div>
+    <table data-anim>
+      <tr><th>抛射角 θ</th><th>射程 R</th><th>最大高度 H</th><th>飞行时间 T</th></tr>
+      <tr><td>15°</td><td><b>45.9 m</b></td><td>3.1 m</td><td>1.58 s</td></tr>
+      <tr><td>30°</td><td><b>79.5 m</b></td><td>11.5 m</td><td>3.06 s</td></tr>
+      <tr><td>45°</td><td><b>91.8 m</b></td><td>22.9 m</td><td>4.33 s</td></tr>
+      <tr><td>60°</td><td><b>79.5 m</b></td><td>34.4 m</td><td>5.30 s</td></tr>
+      <tr><td>75°</td><td><b>45.9 m</b></td><td>42.8 m</td><td>5.91 s</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 5. 单摆 -->
+<section class="slide" data-title="单摆：小角度简谐运动"
+  data-notes="单摆是最经典的简谐运动模型。周期只与摆长和重力有关，与摆球质量无关，这个反直觉的结论值得强调。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>SIMPLE PENDULUM</div>
+    <h2 data-anim>摆动的周期，与摆球轻重无关</h2>
+    <p class="lead" data-anim>小角度下单摆做简谐运动：周期只取决于摆长 L 和重力 g，与振幅和摆球质量都无关。这是伽利略从比萨大教堂吊灯上观察到的规律。</p>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,1fr);gap:20px;align-items:center;margin-top:26px">
+      <div data-anim style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:10px">
+        <svg id="pend-svg" viewBox="0 0 320 260" style="display:block;width:100%;height:auto">
+          <line x1="40" y1="30" x2="280" y2="30" stroke="rgba(148,163,184,.45)" stroke-width="3"/>
+          <line id="pend-rod" x1="160" y1="30" x2="160" y2="210" stroke="#94a3b8" stroke-width="2"/>
+          <circle id="pend-bob" cx="160" cy="210" r="13" fill="#38bdf8"/>
+          <path id="pend-arc" d="M 96 30 A 64 64 0 0 1 224 30" fill="none" stroke="rgba(129,140,248,.5)" stroke-width="1.4" stroke-dasharray="4 5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card" data-anim style="margin-bottom:12px"><h3>周期公式</h3><div class="formula">T = 2π √(L / g)</div><p style="margin-top:10px">摆长 1 m、g = 9.8 m/s² 时，T ≈ 2.01 s。</p></div>
+        <div class="card" data-anim><h3>为什么与质量无关</h3><p>回复力与重力成正比、惯性也与质量成正比，两者恰好抵消——所以轻球和重球同步摆动。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. 波的干涉 -->
+<section class="slide alt" data-title="波的干涉：两列波叠加"
+  data-notes="两个同频波源在空间各处干涉：路程差为波长整数倍的地方振动最强（亮纹），半波长奇数倍处最弱（暗纹）。拖动参数会看到条纹疏密与方向实时变化。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>INTERFERENCE</div>
+    <h2 data-anim>两个波源，一张明暗相间的图样</h2>
+    <p class="lead" data-anim>两列同频波在空间每一点叠加：路程差为波长整数倍处振动最强（亮），为半波长奇数倍处最弱（暗）。间距 d 越大、波长 λ 越短，条纹越密。</p>
+    <div class="lab" data-anim>
+      <div class="lab-canvas"><canvas id="int-canvas" width="170" height="100"></canvas></div>
+      <div class="lab-panel">
+        <div class="ctl"><label>波长 λ <b><span id="iv-lam">95</span> mm</b></label><input id="i-lam" type="range" min="70" max="230" step="5" value="95"></div>
+        <div class="ctl"><label>波源间距 d <b><span id="iv-d">140</span> mm</b></label><input id="i-d" type="range" min="30" max="280" step="5" value="140"></div>
+        <div class="ctl"><label>相位差 φ <b><span id="iv-phi">0</span>°</b></label><input id="i-phi" type="range" min="0" max="360" step="5" value="0"></div>
+        <div class="readout">
+          <div><span>条纹间距(近似)</span><b id="i-fringe">—</b></div>
+          <div><span>λ / d</span><b id="i-ratio">—</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot" data-anim>提示：把 d 调到最小、λ 调到最大，条纹会迅速变宽——这时两个波源几乎像一个源。</div>
+  </div>
+</section>
+
+<!-- 7. 波的衍射 -->
+<section class="slide" data-title="波的衍射：缝宽决定「散」还是「聚」"
+  data-notes="左边是波前按惠更斯原理的传播，右边是同一参数下的强度分布曲线。曲线越宽说明能量越分散（衍射明显），越窄越集中（接近直线传播）。这是判断衍射强弱的定量依据。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>DIFFRACTION</div>
+    <h2 data-anim>是「散开」还是「聚成一束」？</h2>
+    <p class="lead" data-anim>左图是波前按惠更斯原理的传播，<strong>右图是同一参数下的强度分布曲线</strong>：曲线越宽，能量越往两侧分散（衍射明显）；越窄，能量越集中在正前方（接近直线传播）。判断标准就是 <strong>a / λ</strong>。</p>
+    <div class="lab" data-anim>
+      <div class="lab-canvas"><canvas id="dif-canvas" width="360" height="200"></canvas></div>
+      <div class="lab-panel">
+        <div class="ctl"><label>波长 λ <b><span id="dv-lam">16</span> mm</b></label><input id="d-lam" type="range" min="7" max="30" step="1" value="16"></div>
+        <div class="ctl"><label>缝宽 a <b><span id="dv-a">26</span> mm</b></label><input id="d-a" type="range" min="6" max="150" step="1" value="26"></div>
+        <div class="ctl"><label>缝数 <b><span id="dv-n">1</span></b></label><input id="d-n" type="range" min="1" max="3" step="1" value="1"></div>
+        <div class="readout">
+          <div><span>a / λ</span><b id="d-ratio">—</b></div>
+          <div><span>主瓣宽度</span><b id="d-width">—</b></div>
+        </div>
+        <div class="readout" style="grid-template-columns:1fr">
+          <div><span>中央能量占比</span><b id="d-level">—</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot" data-anim>提示：把 λ 拉到 30、a 压到 6（a/λ ≈ 0.2），右图曲线几乎铺满整个角度范围；再把 a 拉到 150（a/λ ≈ 9），曲线收成一根尖峰。</div>
+  </div>
+</section>
+
+<!-- 8. 结语 -->
+<section class="slide alt" data-title="结语">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>WHY HTML</div>
+    <h2><span data-split>公式可以讲，</span><br><span data-split>但拖一下更明白。</span></h2>
+    <p class="lead" data-anim>静态幻灯片只能展示「某一组参数下的结果」；而这里，学生自己调参数、自己把多条轨迹叠起来对比——<br>同一个页面既是讲义，也是实验台。</p>
+    <div class="foot" data-anim>Lumina 只是播放器：这份演示是一个自包含的 HTML 文件，可以直接发给学生，用浏览器打开就能动手。</div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var reduce = false;
+  try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  var NS = 'http://www.w3.org/2000/svg';
+
+  document.querySelectorAll('[data-split]').forEach(function (el) {
+    var t = el.textContent; el.textContent = '';
+    t.split('').forEach(function (ch, i) {
+      var s = document.createElement('span');
+      s.className = 'w'; s.style.setProperty('--i', i); s.textContent = ch;
+      el.appendChild(s);
+    });
+  });
+  document.querySelectorAll('.slide').forEach(function (sl) {
+    sl.querySelectorAll('[data-anim]').forEach(function (el, i) { el.style.setProperty('--i', i); });
+  });
+
+  function countUp(root) {
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+      if (el.__run) return;
+      el.__run = true;
+      var raw = String(el.getAttribute('data-count'));
+      var target = parseFloat(raw) || 0;
+      var dec = (raw.split('.')[1] || '').length;
+      var t0 = null, dur = 1100;
+      function step(now) {
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / dur);
+        var e2 = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * e2).toFixed(dec);
+        if (p < 1) requestAnimationFrame(step);
+        else { el.textContent = target.toFixed(dec); el.__run = false; }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  if (reduce) {
+    document.querySelectorAll('.slide').forEach(function (s) { s.classList.add('in'); });
+  } else {
+    document.body.classList.add('anim');
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); countUp(en.target); }
+        else en.target.classList.remove('in');
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.slide').forEach(function (s) { io.observe(s); });
+    document.querySelectorAll('.slide').forEach(function (sl) {
+      sl.addEventListener('mousemove', function (e) {
+        var r = sl.getBoundingClientRect();
+        sl.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+        sl.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+      }, { passive: true });
+    });
+  }
+
+  /* ================= 抛体：固定坐标系 + 多次发射留痕 ================= */
+  (function () {
+    var svg = document.getElementById('proj-svg');
+    var path = document.getElementById('proj-path');
+    var ball = document.getElementById('proj-ball');
+    var hint = document.getElementById('proj-hint');
+    var trailG = document.getElementById('proj-trails');
+    if (!path || !ball || !trailG) return;
+    var v0El = document.getElementById('p-v0'), thEl = document.getElementById('p-th'), gEl = document.getElementById('p-g');
+    var outR = document.getElementById('p-out-r'), outH = document.getElementById('p-out-h');
+    var outT = document.getElementById('p-out-t'), outVx = document.getElementById('p-out-vx');
+    var lblV = document.getElementById('pv0'), lblT = document.getElementById('pth'), lblG = document.getElementById('pg');
+
+    /* 固定坐标系：横轴 0..220 m，纵轴 0..90 m，等比缩放。
+       固定之后不同参数的弹道才能叠起来直接对比（旧版每帧自适应缩放，形状永远一样）。 */
+    var VIEW_W = 130, VIEW_H = 65;
+    var X0 = 40, X1 = 613, Y0 = 288, Y1 = 30;
+    var SC = Math.min((X1 - X0) / VIEW_W, (Y0 - Y1) / VIEW_H);
+    function X(x) { return X0 + x * SC; }
+    function Y(y) { return Y0 - y * SC; }
+
+    var COLORS = ['#7dd3fc', '#c4b5fd', '#f9a8d4', '#fcd34d', '#6ee7b7', '#93c5fd'];
+    var MAX_TRAILS = 6;
+    var trails = [];
+    var raf = null;
+
+    function calc() {
+      var v0 = parseFloat(v0El.value), th = parseFloat(thEl.value) * Math.PI / 180, g = parseFloat(gEl.value);
+      var vx = v0 * Math.cos(th), vy = v0 * Math.sin(th);
+      var T = 2 * vy / g;
+      return { v0: v0, th: th, g: g, vx: vx, vy: vy, T: T, R: vx * T, Hm: vy * vy / (2 * g) };
+    }
+    function pointsOf(d, frac) {
+      var pts = [], steps = 90;
+      for (var i = 0; i <= steps; i++) {
+        var t = d.T * (i / steps) * frac;
+        var x = d.vx * t, y = d.vy * t - 0.5 * d.g * t * t;
+        pts.push(X(x).toFixed(1) + ',' + Y(Math.max(0, y)).toFixed(1));
+      }
+      return pts;
+    }
+    function readouts(d) {
+      outR.textContent = d.R.toFixed(1) + ' m';
+      outH.textContent = d.Hm.toFixed(1) + ' m';
+      outT.textContent = d.T.toFixed(2) + ' s';
+      outVx.textContent = d.vx.toFixed(1) + ' m/s';
+      lblV.textContent = d.v0.toFixed(0);
+      lblT.textContent = (d.th * 180 / Math.PI).toFixed(0);
+      lblG.textContent = d.g.toFixed(1);
+    }
+    /* 参数变化：只更新读数并复位当前小球，历史轨迹保留 */
+    function idle() {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      var d = calc();
+      readouts(d);
+      path.setAttribute('points', '');
+      path.setAttribute('opacity', '0');
+      ball.setAttribute('opacity', '0');
+      ball.setAttribute('cx', X(0).toFixed(1));
+      ball.setAttribute('cy', Y(0).toFixed(1));
+      hint.setAttribute('opacity', '1');
+    }
+    function addTrail() {
+      var pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('fill', 'none');
+      pl.setAttribute('stroke', COLORS[trails.length % COLORS.length]);
+      pl.setAttribute('stroke-width', '2.2');
+      pl.setAttribute('stroke-linecap', 'round');
+      pl.setAttribute('stroke-linejoin', 'round');
+      pl.setAttribute('opacity', '0.75');
+      trailG.appendChild(pl);
+      trails.push(pl);
+      while (trails.length > MAX_TRAILS) {
+        var old = trails.shift();
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+      }
+      return pl;
+    }
+    function launch() {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      var d = calc();
+      readouts(d);
+      hint.setAttribute('opacity', '0');
+      ball.setAttribute('opacity', '1');
+      if (reduce) {
+        var tr = addTrail();
+        var full = pointsOf(d, 1);
+        tr.setAttribute('points', full.join(' '));
+        var lr = full[full.length - 1].split(',');
+        ball.setAttribute('cx', lr[0]); ball.setAttribute('cy', lr[1]);
+        return;
+      }
+      var live = addTrail();
+      live.setAttribute('opacity', '0.95');
+      live.setAttribute('stroke', COLORS[(trails.length - 1) % COLORS.length]);
+      path.setAttribute('opacity', '0');           // 只显示彩色历史轨迹
+      var t0 = null, dur = 1400;
+      function step(now) {
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / dur);
+        var pts = pointsOf(d, p);
+        live.setAttribute('points', pts.join(' '));
+        var last = pts[pts.length - 1].split(',');
+        ball.setAttribute('cx', last[0]); ball.setAttribute('cy', last[1]);
+        if (p < 1) raf = requestAnimationFrame(step);
+        else raf = null;
+      }
+      raf = requestAnimationFrame(step);
+    }
+    [v0El, thEl, gEl].forEach(function (el) { el.addEventListener('input', idle); });
+    var btn = document.getElementById('p-launch');
+    if (btn) btn.addEventListener('click', launch);
+    var clr = document.getElementById('p-clear');
+    if (clr) clr.addEventListener('click', function () {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      trails.forEach(function (t) { if (t.parentNode) t.parentNode.removeChild(t); });
+      trails = [];
+      idle();
+    });
+    idle();
+    var labSlide = svg.closest('.slide');
+    if (labSlide && window.IntersectionObserver) {
+      var shot = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) { launch(); shot.disconnect(); } });
+      }, { threshold: 0.5 });
+      shot.observe(labSlide);
+    }
+  })();
+
+  /* ================= 波的干涉：预计算距离 + rAF 高帧率 ================= */
+  (function () {
+    var cv = document.getElementById('int-canvas');
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d');
+    var W = cv.width, H = cv.height;
+    var lamEl = document.getElementById('i-lam'), dEl = document.getElementById('i-d'), phiEl = document.getElementById('i-phi');
+    var ovLam = document.getElementById('iv-lam'), ovD = document.getElementById('iv-d'), ovPhi = document.getElementById('iv-phi');
+    var fringeEl = document.getElementById('i-fringe'), ratioEl = document.getElementById('i-ratio');
+    var img = ctx.createImageData(W, H), buf = img.data;
+    var r1s = new Float32Array(W * H), r2s = new Float32Array(W * H);
+    var phase = 0, running = false, lastT = 0;
+
+    /* 距离场只在参数变化时算一次；每帧只做三角函数，帧率才上得来 */
+    function buildField() {
+      var d = parseFloat(dEl.value) || 140;
+      var cx = W / 2, cy = 16, scale = 0.44;   // 把 mm 映射到画布像素
+      var s1x = cx - (d * scale) / 2, s2x = cx + (d * scale) / 2;
+      for (var y = 0; y < H; y++) {
+        for (var x = 0; x < W; x++) {
+          var i = y * W + x;
+          var a1 = x - s1x, b1 = y - cy, a2 = x - s2x, b2 = y - cy;
+          r1s[i] = Math.sqrt(a1 * a1 + b1 * b1) + 7;
+          r2s[i] = Math.sqrt(a2 * a2 + b2 * b2) + 7;
+        }
+      }
+    }
+    function paint() {
+      var lam = (parseFloat(lamEl.value) || 95) * 0.19;     // mm → 像素
+      var d = parseFloat(dEl.value) || 140;
+      var phi = (parseFloat(phiEl.value) || 0) * Math.PI / 180;
+      var k = 2 * Math.PI / Math.max(lam, 2);
+      var cx = W / 2;
+      for (var i = 0, n = W * H; i < n; i++) {
+        var a = Math.cos(k * r1s[i] - phase) / Math.sqrt(r1s[i] / 20) + Math.cos(k * r2s[i] - phase + phi) / Math.sqrt(r2s[i] / 20);
+        var v = a * 0.42 + 0.5;
+        if (v < 0) v = 0; if (v > 1) v = 1;
+        var i4 = i * 4;
+        buf[i4] = 16 + 214 * (v * v * v);
+        buf[i4 + 1] = 28 + 200 * (v * Math.sqrt(v));
+        buf[i4 + 2] = 48 + 196 * v;
+        buf[i4 + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+      ctx.fillStyle = '#f8fafc';
+      var s1x = cx - (d * 0.44) / 2, s2x = cx + (d * 0.44) / 2;
+      [s1x, s2x].forEach(function (sx) { ctx.beginPath(); ctx.arc(sx, 16, 2.6, 0, 6.2832); ctx.fill(); });
+      var L = H - 16;
+      fringeEl.textContent = ((lam * L) / Math.max(d * 0.44, 1) * 5.26).toFixed(0) + ' mm';
+      ratioEl.textContent = (parseFloat(lamEl.value) / d).toFixed(2);
+      ovLam.textContent = (parseFloat(lamEl.value)).toFixed(0);
+      ovD.textContent = d.toFixed(0);
+      ovPhi.textContent = (parseFloat(phiEl.value) || 0).toFixed(0);
+    }
+    function loop(now) {
+      if (!running) return;
+      if (now - lastT > 16) {           // 目标 60fps：预算内尽可能顺滑
+        phase += 0.30;
+        lastT = now;
+        paint();
+      }
+      requestAnimationFrame(loop);
+    }
+    function start() {
+      if (running) return;
+      if (reduce) { paint(); return; }
+      running = true;
+      requestAnimationFrame(loop);
+    }
+    function onParam() { buildField(); paint(); }
+    [lamEl, dEl, phiEl].forEach(function (el) { el.addEventListener('input', onParam); });
+    buildField();
+    paint();
+    var slide = cv.closest('.slide');
+    if (slide && window.IntersectionObserver) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) start(); });
+      }, { threshold: 0.2 }).observe(slide);
+    } else start();
+  })();
+
+  /* ================= 波的衍射：波前 + 强度分布曲线 ================= */
+  (function () {
+    var cv = document.getElementById('dif-canvas');
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d');
+    var W = 360, H = 200;      // 逻辑坐标系（与 CSS 宽高比一致）
+    /* 按设备像素比提升画布内部分辨率：否则被 CSS 拉伸后文字与细线都会发虚 */
+    function fitCanvas() {
+      var cssW = cv.clientWidth || 360;
+      var cssH = Math.round(cssW * (H / W));
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
+      if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+      ctx.setTransform(pw / W, 0, 0, ph / H, 0, 0);
+    }
+    window.addEventListener('resize', fitCanvas);
+    var lamEl = document.getElementById('d-lam'), aEl = document.getElementById('d-a'), nEl = document.getElementById('d-n');
+    var ovLam = document.getElementById('dv-lam'), ovA = document.getElementById('dv-a'), ovN = document.getElementById('dv-n');
+    var ratioEl = document.getElementById('d-ratio'), widthEl = document.getElementById('d-width'), levelEl = document.getElementById('d-level');
+    var RAF = null, running = false, phase = 0, lastT = 0;
+    var FW = 196;                       // 左侧波场宽度
+    var BAR = 34, BARH = 8;
+
+    function gapsOf(a, n) {
+      var out = [], cx = FW / 2;
+      if (n <= 1) { out.push([cx - a / 2, a]); return out; }
+      var sep = Math.max(a + 26, 74);
+      for (var i = 0; i < n; i++) out.push([cx + (i - (n - 1) / 2) * sep - a / 2, a]);
+      return out;
+    }
+    /* 强度分布：单缝衍射因子 × 多缝干涉因子 */
+    function intensity(sinT, a, lam, n) {
+      var beta = Math.PI * a * sinT / lam;
+      var single = Math.abs(beta) < 1e-6 ? 1 : Math.pow(Math.sin(beta) / beta, 2);
+      if (n <= 1) return single;
+      var d = a * 2.3;
+      var gamma = Math.PI * d * sinT / lam;
+      var inter;
+      if (Math.abs(Math.sin(gamma)) < 1e-6) inter = 1;
+      else inter = Math.pow(Math.sin(n * gamma) / (n * Math.sin(gamma)), 2);
+      return single * inter;
+    }
+    function paint() {
+      fitCanvas();
+      var lam = parseFloat(lamEl.value) || 16;
+      var a = parseFloat(aEl.value) || 26;
+      var n = Math.round(parseFloat(nEl.value) || 1);
+      ctx.fillStyle = '#08111f';
+      ctx.fillRect(0, 0, W, H);
+
+      /* ---- 左：波前（惠更斯次级波） ---- */
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(0, BAR, FW, BARH);
+      var gs = gapsOf(a, n);
+      gs.forEach(function (g) {
+        ctx.fillStyle = '#08111f';
+        ctx.fillRect(Math.max(0, g[0]), BAR, Math.min(g[1], FW - g[0]), BARH);
+      });
+      var p = (phase * lam) % lam;
+      ctx.strokeStyle = 'rgba(56,189,248,.42)';
+      ctx.lineWidth = 1.1;
+      for (var y = BAR - 2 - p; y > -lam; y -= lam) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(FW, y); ctx.stroke();
+      }
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, BAR + BARH, FW, H - BAR - BARH); ctx.clip();
+      gs.forEach(function (g) {
+        for (var s = 0; s < 7; s++) {
+          var sx = g[0] + g[1] * (s / 6);
+          if (sx < -2 || sx > FW + 2) continue;
+          for (var ring = 0; ring < 6; ring++) {
+            var r = p + ring * lam;
+            if (r < 1) continue;
+            var al = 0.26 * (1 - ring / 6);
+            if (al <= 0.012) continue;
+            ctx.strokeStyle = 'rgba(125,211,252,' + al.toFixed(3) + ')';
+            ctx.lineWidth = 1.05;
+            ctx.beginPath(); ctx.arc(sx, BAR + BARH, r, 0, Math.PI); ctx.stroke();
+          }
+        }
+      });
+      ctx.restore();
+      ctx.fillStyle = 'rgba(226,232,240,.72)';
+      ctx.font = '10.5px system-ui, sans-serif';
+      ctx.fillText('入射平面波', 5, 13);
+      ctx.fillStyle = '#7dd3fc';
+      ctx.fillText(n > 1 ? (n + ' 缝') : '单缝', 5, H - 7);
+      ctx.fillStyle = 'rgba(148,163,184,.55)';
+      ctx.fillRect(FW + 4, 10, 1, H - 20);
+
+      /* ---- 右：强度分布曲线（判断"散"还是"聚"） ---- */
+      var PX0 = FW + 18, PX1 = W - 10, PY0 = H - 26, PY1 = 16;
+      ctx.strokeStyle = 'rgba(148,163,184,.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PX0, PY0); ctx.lineTo(PX1, PY0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo((PX0 + PX1) / 2, PY0); ctx.lineTo((PX0 + PX1) / 2, PY1); ctx.stroke();
+      ctx.strokeStyle = 'rgba(148,163,184,.18)';
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(PX0, PY1); ctx.lineTo(PX1, PY1); ctx.stroke();
+      ctx.setLineDash([]);
+
+      var samples = 240, first = null, last = null, peakW = 0, total = 0, central = 0;
+      var xs = [], ys = [];
+      for (var i = 0; i <= samples; i++) {
+        var sinT = -1 + (2 * i) / samples;
+        var I = intensity(sinT, a, lam, n);
+        var px = PX0 + (i / samples) * (PX1 - PX0);
+        var py = PY0 - I * (PY0 - PY1);
+        xs.push(px); ys.push(py);
+        total += I;
+        if (Math.abs(sinT) < 0.12) central += I;
+        if (I > 0.5) { if (first === null) first = sinT; last = sinT; }
+      }
+      peakW = (first !== null) ? (last - first) : 0;
+      // 填充
+      var grad = ctx.createLinearGradient(0, PY1, 0, PY0);
+      grad.addColorStop(0, 'rgba(125,211,252,.55)');
+      grad.addColorStop(1, 'rgba(125,211,252,.05)');
+      ctx.beginPath();
+      ctx.moveTo(xs[0], PY0);
+      for (var k2 = 0; k2 <= samples; k2++) ctx.lineTo(xs[k2], ys[k2]);
+      ctx.lineTo(xs[samples], PY0);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // 曲线
+      ctx.beginPath();
+      for (var k3 = 0; k3 <= samples; k3++) { if (k3 === 0) ctx.moveTo(xs[k3], ys[k3]); else ctx.lineTo(xs[k3], ys[k3]); }
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 1.7;
+      ctx.stroke();
+      // 标注
+      ctx.fillStyle = 'rgba(226,232,240,.82)';
+      ctx.font = '9.5px system-ui, sans-serif';
+      ctx.fillText('强度分布', PX0, 13);
+      ctx.fillStyle = 'rgba(148,163,184,.8)';
+      ctx.fillText('-90°', PX0 - 2, H - 12);
+      ctx.fillText('0°', (PX0 + PX1) / 2 - 6, H - 12);
+      ctx.fillText('90°', PX1 - 16, H - 12);
+      // 主瓣范围标线
+      if (first !== null && last !== null && last > first) {
+        var mx0 = PX0 + ((first + 1) / 2) * (PX1 - PX0);
+        var mx1 = PX0 + ((last + 1) / 2) * (PX1 - PX0);
+        ctx.strokeStyle = 'rgba(252,211,77,.85)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(mx0, PY0); ctx.lineTo(mx0, PY1 + 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mx1, PY0); ctx.lineTo(mx1, PY1 + 4); ctx.stroke();
+      }
+
+      var ratio = a / lam;
+      ratioEl.textContent = ratio.toFixed(2);
+      widthEl.textContent = (peakW * 90).toFixed(0) + '°';
+      var share = total > 0 ? central / total : 0;
+      levelEl.textContent = (share * 100).toFixed(0) + '%　' +
+        (ratio < 0.8 ? '（发散，衍射很强）' : ratio < 2 ? '（明显扩散）' : ratio < 6 ? '（开始收束）' : '（几乎直线传播）');
+      ovLam.textContent = lam.toFixed(0);
+      ovA.textContent = a.toFixed(0);
+      ovN.textContent = n;
+    }
+    function loop(now) {
+      if (!running) return;
+      if (now - lastT > 20) { phase += 0.34; lastT = now; paint(); }
+      requestAnimationFrame(loop);
+    }
+    function start() {
+      if (running) return;
+      if (reduce) { paint(); return; }
+      running = true;
+      requestAnimationFrame(loop);
+    }
+    [lamEl, aEl, nEl].forEach(function (el) { el.addEventListener('input', paint); });
+    paint();
+    var slide = cv.closest('.slide');
+    if (slide && window.IntersectionObserver) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) start(); });
+      }, { threshold: 0.2 }).observe(slide);
+    } else start();
+  })();
+
+  /* ================= 单摆 ================= */
+  (function () {
+    var rod = document.getElementById('pend-rod'), bob = document.getElementById('pend-bob');
+    if (!rod || !bob) return;
+    var L = 180, amp = 26 * Math.PI / 180, period = 2010;
+    var t0 = null;
+    function frame(now) {
+      if (t0 === null) t0 = now;
+      var th = amp * Math.cos(2 * Math.PI * (now - t0) / period);
+      var x = 160 + L * Math.sin(th), y = 30 + L * Math.cos(th);
+      rod.setAttribute('x2', x.toFixed(1)); rod.setAttribute('y2', y.toFixed(1));
+      bob.setAttribute('cx', x.toFixed(1)); bob.setAttribute('cy', y.toFixed(1));
+      requestAnimationFrame(frame);
+    }
+    if (!reduce) requestAnimationFrame(frame);
+  })();
+})();
+</script>
+
+</body>
+</html>

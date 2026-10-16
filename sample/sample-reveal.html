@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Reveal.js 示例</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<style>
+  .reveal section { color:#eef2ff; }
+  .reveal h1 { color:#7c5cff; }
+  body { background:#0b1020; }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+    <section data-title="Reveal 封面">
+      <h1>Reveal.js 格式兼容</h1>
+      <p>这是 AI 用 HTML 生成幻灯片最常见的一种格式</p>
+      <aside class="notes">这是第一页的演讲者备注。</aside>
+    </section>
+    <section data-title="第二页">
+      <h2>自动识别 &lt;section&gt;</h2>
+      <p>播放器会自动识别每一页并支持翻页、标注、编辑。</p>
+      <aside class="notes">第二页备注：说明识别机制。</aside>
+    </section>
+    <section data-title="第三页">
+      <h2>演讲者模式</h2>
+      <p>投影放正片，控制台看备注与下一页。</p>
+    </section>
+    <section data-title="结束">
+      <h1>谢谢</h1>
+    </section>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script>Reveal.initialize({ width:1280, height:720 });</script>
+</body>
+</html>

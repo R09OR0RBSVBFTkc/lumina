@@ -1,0 +1,49 @@
+{
+  "name": "lumina",
+  "productName": "Lumina",
+  "version": "1.0.0",
+  "description": "播放、编辑、演讲、标注 AI 生成的 HTML 幻灯片（Electron 桌面版）",
+  "author": "Lumina",
+  "license": "MIT",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron"
+    ]
+  },
+  "build": {
+    "appId": "com.lumina.slides",
+    "productName": "Lumina",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "index.html",
+      "css/**/*",
+      "js/**/*",
+      "sample/**/*",
+      "icons/**/*",
+      "manifest.webmanifest",
+      "sw.js",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumina · 2026 年度经营回顾</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:#070a12; color:#e8ecf6;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+
+  /* ============ 幻灯片 ============ */
+  .slide{
+    width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:8vh 8vw;position:relative;overflow:hidden;box-sizing:border-box;
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .slide .glow{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;
+    background:radial-gradient(520px circle at var(--mx,50%) var(--my,35%),rgba(77,141,255,.16),transparent 62%);
+  }
+  .slide:hover .glow{opacity:1;}
+  .slide::before{
+    content:"";position:absolute;width:70vw;height:70vw;border-radius:50%;
+    background:radial-gradient(circle,rgba(77,141,255,.14),transparent 62%);
+    top:-30vw;right:-22vw;filter:blur(28px);pointer-events:none;
+  }
+  .slide.alt::before{
+    background:radial-gradient(circle,rgba(167,139,250,.13),transparent 62%);
+    top:auto;bottom:-32vw;left:-20vw;right:auto;
+  }
+  .slide.warm::before{
+    background:radial-gradient(circle,rgba(255,169,77,.11),transparent 62%);
+    top:-26vw;right:-18vw;
+  }
+  .inner{width:100%;max-width:1120px;position:relative;z-index:2;}
+  .eyebrow{font-size:12.5px;letter-spacing:.34em;text-transform:uppercase;font-weight:600;margin-bottom:22px;
+    background:linear-gradient(90deg,#4d8dff,#7ad0ff,#a78bfa,#4d8dff);background-size:300% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 7s ease infinite;}
+  @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+  h1{font-size:clamp(40px,6.6vw,78px);font-weight:700;line-height:1.05;letter-spacing:-.03em;margin-bottom:24px;}
+  h2{font-size:clamp(28px,4.3vw,50px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin-bottom:18px;}
+  .lead{font-size:clamp(15px,1.6vw,19px);line-height:1.75;color:#a7b3cb;max-width:820px;}
+  .accent{color:#7ad0ff;}
+  .warm-t{color:#ffb85c;}
+  .kbd{display:inline-block;padding:2px 9px;border-radius:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:13px;font-family:ui-monospace,Menlo,monospace;color:#dbe4ff;}
+
+  /* ============ 动效基础（JS 就绪才启用，保证 JS 失败时内容仍可见） ============ */
+  body.anim [data-anim]{
+    opacity:0;transform:translateY(26px);
+    transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);
+    transition-delay:calc(var(--i,0) * 85ms);
+  }
+  body.anim .slide.in [data-anim]{opacity:1;transform:none;}
+  body.anim .w{display:inline-block;opacity:0;transform:translateY(.7em) rotate(1.5deg);
+    transition:opacity .5s ease,transform .65s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0) * 70ms);}
+  body.anim .slide.in .w{opacity:1;transform:none;}
+  /* SVG 矢量绘制 */
+  .draw path,.draw line,.draw circle,.draw rect,.draw polyline{
+    stroke-dasharray:var(--len,420);stroke-dashoffset:var(--len,420);
+    transition:stroke-dashoffset 1.3s cubic-bezier(.45,.05,.2,1) .25s;
+  }
+  body.anim .slide.in .draw path,body.anim .slide.in .draw line,body.anim .slide.in .draw circle,
+  body.anim .slide.in .draw rect,body.anim .slide.in .draw polyline{stroke-dashoffset:0;}
+  /* 进度条生长 */
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:14px;}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4d8dff,#7ad0ff);transition:width 1.3s cubic-bezier(.22,.61,.36,1) .3s;}
+  body.anim .slide.in .bar i{width:var(--w,60%);}
+  /* 柱状图逐根长出（scaleY，不触发布局） */
+  .bars rect.bar-i{transform:scaleY(0);transform-box:fill-box;transform-origin:bottom;
+    transition:transform .85s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0) * 95ms);}
+  body.anim .slide.in .bars rect.bar-i{transform:scaleY(1);}
+  /* 环形图逐段生长 */
+  .donut circle.seg{stroke-dashoffset:var(--off);transition:stroke-dashoffset 1.25s cubic-bezier(.45,.05,.2,1);
+    transition-delay:calc(var(--i,0) * 260ms);}
+  body.anim .slide.in .donut circle.seg{stroke-dashoffset:0;}
+  /* 交互图表：点击/切换后重绘的逐段动画（由 JS 加 .grow 触发） */
+  .c-bars rect{transform:scaleY(0);transform-box:fill-box;transform-origin:bottom;
+    transition:transform .8s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0) * 85ms);}
+  .line-wrap .c-line{stroke-dasharray:var(--len,1200);stroke-dashoffset:var(--len,1200);
+    transition:stroke-dashoffset 1.15s cubic-bezier(.45,.05,.2,1) .1s;}
+  .c-dots circle{opacity:0;transition:opacity .45s ease;transition-delay:calc(.25s + var(--i,0) * 85ms);}
+  .ic.in .c-bars rect{transform:scaleY(1);}
+  .ic.in .line-wrap .c-line{stroke-dashoffset:0;}
+  .ic.in .c-dots circle{opacity:1;}
+
+  /* ============ 组件 ============ */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:42px;}
+  .card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:20px;
+    padding:26px 24px;backdrop-filter:blur(12px);transition:transform .3s cubic-bezier(.22,.61,.36,1),border-color .3s;}
+  .card:hover{border-color:rgba(122,208,255,.35);}
+  .card .ico{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4d8dff,#7ad0ff);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .card .ico svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+  .card h3{font-size:19px;font-weight:650;margin-bottom:8px;letter-spacing:-.01em;}
+  .card p{font-size:14.5px;line-height:1.65;color:#98a4bd;}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:40px;}
+  @media (max-width:720px){.cols{grid-template-columns:1fr;}}
+  .col{border-radius:20px;padding:26px 24px;border:1px solid rgba(255,255,255,.09);}
+  .col.old{background:rgba(255,255,255,.03);}
+  .col.new{background:linear-gradient(160deg,rgba(77,141,255,.13),rgba(167,139,250,.07));border-color:rgba(122,208,255,.28);}
+  .col h3{font-size:17px;font-weight:700;margin-bottom:16px;}
+  .col.old h3{color:#8b96ad;}
+  .col ul{list-style:none;display:flex;flex-direction:column;gap:11px;}
+  .col li{font-size:14.5px;line-height:1.55;color:#a7b3cb;padding-left:22px;position:relative;}
+  .col li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:2px;background:#4a556b;}
+  .col.new li::before{background:linear-gradient(135deg,#4d8dff,#7ad0ff);}
+
+  .stats{display:flex;flex-wrap:wrap;gap:34px;margin-top:40px;}
+  .stat .n{font-size:clamp(38px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1;
+    background:linear-gradient(135deg,#7ad0ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;
+    font-variant-numeric:tabular-nums;}
+  .stat .u{font-size:20px;font-weight:600;color:#7ad0ff;}
+  .stat .l{font-size:13.5px;color:#8b96ad;margin-top:8px;letter-spacing:.02em;}
+
+  .badge{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:99px;
+    background:rgba(77,141,255,.12);border:1px solid rgba(77,141,255,.3);color:#8fb6ff;font-size:13px;font-weight:600;margin-bottom:28px;}
+  .badge i{width:7px;height:7px;border-radius:50%;background:#4d8dff;display:block;animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+  .foot{margin-top:44px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);color:#79859b;font-size:13.5px;}
+
+  /* ============ 指标卡（KPI 看板） ============ */
+  .kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:34px;}
+  @media (max-width:820px){.kpi{grid-template-columns:1fr;}}
+  .kcard{background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:26px 26px 22px;position:relative;overflow:hidden;}
+  .kcard::after{content:"";position:absolute;left:0;top:0;height:100%;width:3px;
+    background:linear-gradient(180deg,#4d8dff,#7ad0ff);opacity:.85;}
+  .kcard .kt{font-size:13px;color:#8b96ad;letter-spacing:.06em;margin-bottom:14px;}
+  .kcard .kv{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums;}
+  .kcard .kv .num{font-size:clamp(36px,4.4vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1;
+    background:linear-gradient(135deg,#ffffff,#a9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .kcard .kv .unit{font-size:17px;font-weight:700;color:#7ad0ff;}
+  .kcard .km{display:flex;align-items:center;gap:12px;margin-top:14px;}
+  .kcard .yoy{font-size:13.5px;font-weight:700;color:#3ddc97;font-variant-numeric:tabular-nums;}
+  .kcard .yoy.down{color:#ff8f6b;}
+  .kcard .base{font-size:12.5px;color:#79859b;}
+  .kcard .bar-wrap{margin-top:12px;}
+  .kcard .bar{margin-top:0;height:5px;}
+
+  /* ============ 交互式数据探索 ============ */
+  .explore{display:grid;grid-template-columns:255px 1fr;gap:24px;margin-top:30px;align-items:start;}
+  @media (max-width:900px){.explore{grid-template-columns:1fr;}}
+  .panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:20px 18px;}
+  .panel .plab{font-size:11.5px;letter-spacing:.2em;color:#79859b;font-weight:700;margin-bottom:12px;text-transform:uppercase;}
+  .pbtns{display:grid;gap:9px;margin-bottom:20px;}
+  .pbtn{appearance:none;font:inherit;text-align:left;cursor:pointer;color:#c3cde0;
+    background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);border-radius:13px;
+    padding:11px 14px;font-size:14.5px;transition:transform .22s cubic-bezier(.22,.61,.36,1),border-color .22s,background .22s,color .22s;}
+  .pbtn:hover{transform:translateX(3px);border-color:rgba(122,208,255,.4);color:#e8ecf6;}
+  .pbtn.on{background:linear-gradient(120deg,rgba(77,141,255,.24),rgba(122,208,255,.12));
+    border-color:rgba(122,208,255,.6);color:#fff;box-shadow:0 6px 22px rgba(77,141,255,.18);}
+  .pbtn .sub{display:block;font-size:11.5px;color:#79859b;margin-top:3px;letter-spacing:.02em;}
+  .pbtn.on .sub{color:#9fc4ff;}
+  .seg{display:flex;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+    border-radius:13px;padding:5px;}
+  .seg button{appearance:none;font:inherit;cursor:pointer;flex:1;color:#9aa7bf;background:transparent;border:0;
+    border-radius:9px;padding:9px 4px;font-size:13.5px;font-weight:600;
+    transition:background .25s,color .25s;}
+  .seg button:hover{color:#e8ecf6;}
+  .seg button.on{background:linear-gradient(120deg,rgba(77,141,255,.85),rgba(122,208,255,.7));color:#04121f;}
+  .chart{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:20px;
+    padding:20px 20px 14px;}
+  .chead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:6px;}
+  .chead .ct{font-size:15px;color:#a7b3cb;font-weight:600;}
+  .chead .cv{font-size:clamp(26px,3vw,36px);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#7ad0ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .chead .cd{font-size:13px;font-weight:700;color:#3ddc97;font-variant-numeric:tabular-nums;}
+  .chead .cd.down{color:#ff8f6b;}
+  .chart svg{display:block;width:100%;height:auto;}
+  .tt{position:absolute;pointer-events:none;z-index:5;transform:translate(-50%,-118%);opacity:0;
+    transition:opacity .18s ease;background:rgba(9,14,24,.94);border:1px solid rgba(122,208,255,.35);
+    border-radius:11px;padding:8px 12px;font-size:12.5px;line-height:1.5;white-space:nowrap;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);}
+  .tt.show{opacity:1;}
+  .tt b{color:#7ad0ff;font-variant-numeric:tabular-nums;}
+  .tt .ttd{color:#8b96ad;}
+  .hint{margin-top:8px;font-size:12.5px;color:#79859b;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:#8b96ad;}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle;}
+
+  /* ============ 问题与对策 ============ */
+  .ps{display:grid;gap:14px;margin-top:34px;}
+  .prow{display:grid;grid-template-columns:1fr 58px 1fr;gap:14px;align-items:stretch;}
+  @media (max-width:820px){.prow{grid-template-columns:1fr;}}
+  .pcard{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:20px 22px;}
+  .pcard.q{border-left:3px solid rgba(255,143,107,.75);}
+  .pcard.a{border-left:3px solid rgba(61,220,151,.75);background:linear-gradient(120deg,rgba(61,220,151,.07),rgba(255,255,255,.02));}
+  .pcard h4{font-size:15.5px;font-weight:700;margin-bottom:7px;}
+  .pcard.q h4{color:#ffb59c;}
+  .pcard.a h4{color:#8ef0c2;}
+  .pcard p{font-size:14px;line-height:1.6;color:#9aa7bf;}
+  .pcard .tag{display:inline-block;margin-top:10px;font-size:12px;color:#79859b;border:1px solid rgba(255,255,255,.12);
+    border-radius:99px;padding:3px 10px;}
+  .arrow{display:flex;align-items:center;justify-content:center;color:#4d8dff;}
+  .arrow svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  @media (max-width:820px){.arrow{transform:rotate(90deg);height:34px;}}
+
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:36px;}
+  .step{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:24px 22px;position:relative;}
+  .step .sn{font-size:12px;letter-spacing:.2em;font-weight:700;color:#7ad0ff;text-transform:uppercase;margin-bottom:12px;}
+  .step h3{font-size:18px;font-weight:700;margin-bottom:10px;}
+  .step ul{list-style:none;display:grid;gap:8px;}
+  .step li{font-size:14px;line-height:1.55;color:#9aa7bf;padding-left:18px;position:relative;}
+  .step li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:50%;
+    background:linear-gradient(135deg,#4d8dff,#7ad0ff);}
+
+  @media (prefers-reduced-motion: reduce){
+    body.anim [data-anim],body.anim .w{opacity:1 !important;transform:none !important;transition:none !important;}
+    .bar i{width:var(--w,60%) !important;transition:none !important;}
+    .draw path,.draw line,.draw circle,.draw rect,.draw polyline{stroke-dashoffset:0 !important;transition:none !important;}
+    .bars rect.bar-i,.c-bars rect{transform:scaleY(1) !important;transition:none !important;}
+    .donut circle.seg,.line-wrap .c-line{stroke-dashoffset:0 !important;transition:none !important;}
+    .c-dots circle{opacity:1 !important;transition:none !important;}
+    .eyebrow,.badge i{animation:none !important;}
+  }
+
+  /* 交互控件可用性：range 默认只有约 16px 高，鼠标很难抓住 → 加大热区 */
+  input[type=range]{ height:26px !important; margin:0; cursor:grab; }
+  input[type=range]:active{ cursor:grabbing; }
+  input[type=range]::-webkit-slider-thumb{ width:19px; height:19px; cursor:grab; }
+  input[type=range]:hover{ filter:brightness(1.15); }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. 封面 ============ -->
+<section class="slide" data-title="封面：2026 年度经营回顾"
+  data-notes="开场 30 秒：一句话定调——今年不是「增长故事」，而是「增长质量」的故事。收入与利润双升，但获客成本与交付效率已经拉响警报。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="badge" data-anim><i></i>2026 年度经营回顾 · 董事会汇报</div>
+    <h1><span data-split>增长仍在继续，</span><br><span class="accent" data-split>质量才是分水岭。</span></h1>
+    <p class="lead" data-anim>全年营收 12.84 亿元，同比增长 28.4%；净利率提升至 18.6%。<br>但获客成本上升 31%、交付周期延长，下一阶段的关键词是<strong class="warm-t">效率</strong>与<strong class="accent">留存</strong>。</p>
+    <div class="foot" data-anim>汇报人：经营分析部 · 数据截至 2026 年 12 月 31 日（未经审计） · 由 <span class="kbd">Lumina</span> 播放</div>
+  </div>
+</section>
+
+<!-- ============ 2. 核心 KPI 看板 ============ -->
+<section class="slide alt" data-title="核心 KPI 看板"
+  data-notes="四个指标逐一读数：营收、净利率、客户总数、续约率。每个数字进入视口会实时增长——讲的时候放慢，让数字跑完。同比对比条说明相对去年同期的位置。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>KEY METRICS · FY2026</div>
+    <h2 data-anim>四个数字，看清这一年</h2>
+    <p class="lead" data-anim>收入与利润同步扩张，客户结构继续向高续约客户迁移；净利率的改善主要来自产品结构上移，而非费用削减。</p>
+
+    <div class="kpi">
+      <div class="kcard" data-anim>
+        <div class="kt">全年营业收入</div>
+        <div class="kv"><span class="num" data-count="12.84">0</span><span class="unit">亿元</span></div>
+        <div class="km"><span class="yoy">▲ 28.4%</span><span class="base">去年同期 10.00 亿</span></div>
+        <div class="bar-wrap"><div class="bar" style="--w:100%"><i></i></div></div>
+      </div>
+      <div class="kcard" data-anim>
+        <div class="kt">净利率</div>
+        <div class="kv"><span class="num" data-count="18.6">0</span><span class="unit">%</span></div>
+        <div class="km"><span class="yoy">▲ 3.2 pt</span><span class="base">去年同期 15.4%</span></div>
+        <div class="bar-wrap"><div class="bar" style="--w:62%"><i></i></div></div>
+      </div>
+      <div class="kcard" data-anim>
+        <div class="kt">付费客户总数</div>
+        <div class="kv"><span class="num" data-count="4286">0</span><span class="unit">家</span></div>
+        <div class="km"><span class="yoy">▲ 24.7%</span><span class="base">净增 849 家</span></div>
+        <div class="bar-wrap"><div class="bar" style="--w:88%"><i></i></div></div>
+      </div>
+      <div class="kcard" data-anim>
+        <div class="kt">年度续约率</div>
+        <div class="kv"><span class="num" data-count="92.4">0</span><span class="unit">%</span></div>
+        <div class="km"><span class="yoy">▲ 5.1 pt</span><span class="base">行业均值 86%</span></div>
+        <div class="bar-wrap"><div class="bar" style="--w:92%"><i style="background:linear-gradient(90deg,#a78bfa,#7ad0ff)"></i></div></div>
+      </div>
+    </div>
+
+    <div class="foot" data-anim>口径说明：营收为合并口径含税收入；净利率=净利润/营业收入；续约率按金额加权，剔除战略客户一次性合同。</div>
+  </div>
+</section>
+
+<!-- ============ 3. 【核心页】交互式数据探索 ============ -->
+<section class="slide" data-title="交互式数据探索"
+  data-notes="核心页，留给互动。左侧点指标切换图表内容，点年份区间切换时间窗；鼠标在图上移动会跟随十字准线，点击某个季度可锁定数值。数据全部实时计算、逐段重绘。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>EXPLORE THE DATA</div>
+    <h2 data-anim>数据不是结论，是可以翻的</h2>
+    <p class="lead" data-anim>切换左侧指标与时间窗口，图表会立刻重绘并重新生长；把鼠标移到任意季度上，可以看到精确数值与同比。</p>
+
+    <div class="explore" data-anim>
+      <div class="panel">
+        <div class="plab">指标</div>
+        <div class="pbtns" id="metricBtns">
+          <button class="pbtn on" type="button" data-tab="revenue">营业收入<span class="sub">季度收入（亿元）</span></button>
+          <button class="pbtn" type="button" data-tab="customers">新增客户<span class="sub">季度净新增（家）</span></button>
+          <button class="pbtn" type="button" data-tab="renewal">续约率<span class="sub">季度续约率（%）</span></button>
+          <button class="pbtn" type="button" data-tab="cost">获客成本<span class="sub">单客获取成本（元）</span></button>
+        </div>
+        <div class="plab">时间窗口</div>
+        <div class="seg" id="rangeBtns">
+          <button type="button" data-years="8" class="on">近 8 季</button>
+          <button type="button" data-years="6">近 6 季</button>
+          <button type="button" data-years="4">近 4 季</button>
+        </div>
+      </div>
+
+      <div class="chart">
+        <div class="chead">
+          <div>
+            <div class="ct" id="chartLabel">营业收入 · 季度</div>
+            <div class="cv" id="chartValue">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="cd" id="chartDelta">—</div>
+            <div class="base" style="font-size:12.5px;color:#79859b">最近季度同比</div>
+          </div>
+        </div>
+        <div id="chart" class="ic" data-tab="revenue" data-years="8" style="position:relative">
+          <svg viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="季度数据图表"></svg>
+          <div class="tt" id="tt"></div>
+        </div>
+        <div class="hint">
+          <div class="legend">
+            <span><i style="background:linear-gradient(90deg,#4d8dff,#7ad0ff)"></i>柱：本季数值</span>
+            <span><i style="background:linear-gradient(90deg,#a78bfa,#7ad0ff);border-radius:99px;height:3px;width:16px"></i>线：趋势</span>
+            <span><i style="background:rgba(255,184,92,.9);border-radius:99px;height:3px;width:16px"></i>虚线：同比基准</span>
+          </div>
+          <div>提示：移动鼠标查看，点击可锁定</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. 趋势与结构 ============ -->
+<section class="slide alt" data-title="趋势与结构"
+  data-notes="左图是三年营收趋势，右图是收入结构。趋势看斜率，结构看重心变化：订阅收入占比首年超过 60%，是净利率改善的真正来源。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>TREND &amp; MIX</div>
+    <h2 data-anim>增长从哪来，结构说了算</h2>
+    <p class="lead" data-anim>三年营收复合增速 27.9%，且增长质量逐年上移——经常性收入占比从 41% 提升到 63%，收入结构从「项目驱动」转向「订阅驱动」。</p>
+
+    <div class="cols" style="margin-top:34px">
+      <div class="col old" data-anim style="background:rgba(255,255,255,.035)">
+        <h3 style="color:#c3cde0">营收趋势（亿元）</h3>
+        <svg class="draw" viewBox="0 0 560 240" style="width:100%;height:auto;fill:none;stroke:#7ad0ff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;" aria-label="三年营收趋势">
+          <line style="--len:520;stroke:rgba(255,255,255,.13);stroke-width:1" x1="44" y1="196" x2="540" y2="196"/>
+          <line style="--len:520;stroke:rgba(255,255,255,.07);stroke-width:1" x1="44" y1="140" x2="540" y2="140"/>
+          <line style="--len:520;stroke:rgba(255,255,255,.07);stroke-width:1" x1="44" y1="84" x2="540" y2="84"/>
+          <polyline style="--len:900" points="64,168 176,146 288,112 400,80 512,38"/>
+          <circle style="--len:340;stroke:#7ad0ff" cx="64" cy="168" r="6"/>
+          <circle style="--len:340;stroke:#7ad0ff" cx="288" cy="112" r="6"/>
+          <circle style="--len:340;stroke:#ffb85c" cx="512" cy="38" r="7"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:#79859b;margin-top:6px">
+          <span>2023 · 7.85</span><span>2024 · 10.00</span><span>2025 · 11.42</span><span style="color:#ffb85c">2026 · 12.84</span>
+        </div>
+      </div>
+
+      <div class="col new" data-anim>
+        <h3 style="color:#c3cde0">收入结构（2026）</h3>
+        <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:6px">
+          <svg class="donut" viewBox="0 0 200 200" style="width:min(200px,44vw);height:auto" aria-label="收入结构环形图">
+            <circle cx="100" cy="100" r="74" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="20"/>
+            <circle class="seg" style="--len:302.9;--off:0;--i:0" cx="100" cy="100" r="74" fill="none" stroke="#4d8dff" stroke-width="20"
+              stroke-linecap="butt" stroke-dasharray="302.9 464.9" transform="rotate(-90 100 100)"/>
+            <circle class="seg" style="--len:182.2;--off:-302.9;--i:1" cx="100" cy="100" r="74" fill="none" stroke="#7ad0ff" stroke-width="20"
+              stroke-linecap="butt" stroke-dasharray="182.2 585.6" transform="rotate(-90 100 100)"/>
+            <circle class="seg" style="--len:110.6;--off:-485.1;--i:2" cx="100" cy="100" r="74" fill="none" stroke="#a78bfa" stroke-width="20"
+              stroke-linecap="butt" stroke-dasharray="110.6 657.2" transform="rotate(-90 100 100)"/>
+            <circle class="seg" style="--len:69.1;--off:-595.7;--i:3" cx="100" cy="100" r="74" fill="none" stroke="#ffb85c" stroke-width="20"
+              stroke-linecap="butt" stroke-dasharray="69.1 698.7" transform="rotate(-90 100 100)"/>
+            <text x="100" y="94" text-anchor="middle" fill="#e8ecf6" font-size="30" font-weight="800" font-family="inherit">12.84</text>
+            <text x="100" y="118" text-anchor="middle" fill="#8b96ad" font-size="13" font-family="inherit">亿元 · 全年</text>
+          </svg>
+          <div style="display:grid;gap:12px;min-width:190px;flex:1">
+            <div><span style="color:#4d8dff;font-weight:800">■</span> 订阅服务 <b style="float:right;font-variant-numeric:tabular-nums">63%</b></div>
+            <div><span style="color:#7ad0ff;font-weight:800">■</span> 实施交付 <b style="float:right;font-variant-numeric:tabular-nums">23%</b></div>
+            <div><span style="color:#a78bfa;font-weight:800">■</span> 增值模块 <b style="float:right;font-variant-numeric:tabular-nums">9%</b></div>
+            <div><span style="color:#ffb85c;font-weight:800">■</span> 培训与支持 <b style="float:right;font-variant-numeric:tabular-nums">5%</b></div>
+          </div>
+        </div>
+        <div class="bar" style="--w:63%;margin-top:22px"><i></i></div>
+        <p style="font-size:13px;color:#8b96ad;margin-top:10px">经常性收入占比 63%，较去年提升 9 个百分点。</p>
+      </div>
+    </div>
+    <div class="foot" data-anim>三年营收复合增速（CAGR）27.9%；结构数据按确认收入口径拆分，四舍五入合计 100%。</div>
+  </div>
+</section>
+
+<!-- ============ 5. 问题与对策 ============ -->
+<section class="slide warm" data-title="问题与对策"
+  data-notes="不回避问题。四条按优先级排列，左侧是问题与影响，右侧是本季度已经启动的对策。重点讲第一和第二条——它们决定明年的利润空间。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>ISSUES &amp; ACTIONS</div>
+    <h2 data-anim>四个必须解决的问题</h2>
+    <p class="lead" data-anim>增长掩盖不了结构性摩擦。以下四条按影响程度排序，每条都已明确责任人与验收标准。</p>
+
+    <div class="ps">
+      <div class="prow" data-anim>
+        <div class="pcard q">
+          <h4>获客成本上升 31%</h4>
+          <p>单客获取成本升至 2,180 元，其中付费投放占比首次超过 45%，边际效率明显下降。</p>
+          <span class="tag">影响：净利率 · 高</span>
+        </div>
+        <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <div class="pcard a">
+          <h4>渠道结构再平衡</h4>
+          <p>把投放预算占比压到 30% 以内，把伙伴转介与内容获客提到 50%；同时对高成本渠道设单客上限。</p>
+          <span class="tag">目标：Q2 降至 1,850 元</span>
+        </div>
+      </div>
+
+      <div class="prow" data-anim>
+        <div class="pcard q">
+          <h4>交付周期偏长</h4>
+          <p>标准版平均交付 34 天，超出承诺的 21 天，间接拖慢回款并拉低客户满意度（NPS 下降 4 分）。</p>
+          <span class="tag">影响：回款 · 高</span>
+        </div>
+        <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <div class="pcard a">
+          <h4>模板化 + 交付分层</h4>
+          <p>沉淀 20 套行业模板，简单客户走自助配置通道，复杂客户保留专属团队，按复杂度重新定价。</p>
+          <span class="tag">目标：缩短至 18 天</span>
+        </div>
+      </div>
+
+      <div class="prow" data-anim>
+        <div class="pcard q">
+          <h4>中腰部客户活跃度断层</h4>
+          <p>年费 10 万以下客户月活仅 38%，占客户数 46% 却只贡献 19% 收入，续约风险集中。</p>
+          <span class="tag">影响：续约率 · 中</span>
+        </div>
+        <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <div class="pcard a">
+          <h4>健康分与分层运营</h4>
+          <p>上线客户健康分模型，对风险客户自动触发成功经理介入；把低活跃客户引导到标准版+自助课程。</p>
+          <span class="tag">目标：月活提至 55%</span>
+        </div>
+      </div>
+
+      <div class="prow" data-anim>
+        <div class="pcard q">
+          <h4>增值模块渗透不足</h4>
+          <p>增值模块仅覆盖 9% 收入、订购客户占比 21%，交叉销售动作主要靠个别销售自发完成。</p>
+          <span class="tag">影响：客单价 · 中</span>
+        </div>
+        <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <div class="pcard a">
+          <h4>场景化打包销售</h4>
+          <p>把模块嵌入三个高频场景做打包方案；对渗透率低的客户名单做专项跟进，纳入销售考核。</p>
+          <span class="tag">目标：渗透率 35%</span>
+        </div>
+      </div>
+    </div>
+    <div class="foot" data-anim>每条对策均已指定责任人，验收口径与目标值在《2026 经营改进清单》中逐条对齐。</div>
+  </div>
+</section>
+
+<!-- ============ 6. 结语与行动项 ============ -->
+<section class="slide" data-title="结语：下一步计划"
+  data-notes="收尾：三个时间盒子，分别对应 30 天、Q1、上半年。最后一句是行动号召——把今天的结论落成明天的动作。"> 
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>NEXT STEPS</div>
+    <h2><span data-split>把今天说清楚的，</span><br><span class="accent" data-split>变成明天做到的。</span></h2>
+    <p class="lead" data-anim>目标已经量化、责任已经到人。接下来 90 天，只看三件事的落地节奏。</p>
+
+    <div class="steps">
+      <div class="step" data-anim>
+        <div class="sn">30 DAYS</div>
+        <h3>止血与对齐</h3>
+        <ul>
+          <li>渠道单客成本上限上线，砍掉尾部 12% 低效投放</li>
+          <li>客户健康分模型完成灰度，覆盖 300 家客户</li>
+          <li>交付模板首批 8 套上线并通过验收</li>
+        </ul>
+      </div>
+      <div class="step" data-anim>
+        <div class="sn">Q1</div>
+        <h3>结构调优</h3>
+        <ul>
+          <li>伙伴转介与内容获客占比提升到 45%</li>
+          <li>标准版交付周期压到 22 天以内</li>
+          <li>增值模块打包方案完成定价与试点</li>
+        </ul>
+      </div>
+      <div class="step" data-anim>
+        <div class="sn">H1</div>
+        <h3>质量兑现</h3>
+        <ul>
+          <li>获客成本回到 1,850 元，净利率站稳 20%</li>
+          <li>续约率 94%，中腰部客户月活 55%</li>
+          <li>经常性收入占比提升到 70%</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot" data-anim>下一步：本周五前确认各项目责任人；下月经营会复盘第一组数据。 · 本演示由 <span class="kbd">Lumina</span> 播放，可按 <span class="kbd">→</span> 继续。</div>
+  </div>
+</section>
+
+<script>
+/* 动效引擎：滚动驱动入场 + 逐字浮现 + 数字增长 + 光晕跟随 + 3D 倾斜 + 交互式图表重绘
+   设计原则：① JS 未就绪时内容完整可见；② 尊重 prefers-reduced-motion；③ 只用 transform/opacity，GPU 加速 */
+(function () {
+  var reduce = false;
+  try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  // ① 逐字拆分（在加 anim 类之前完成，避免闪烁）
+  document.querySelectorAll('[data-split]').forEach(function (el) {
+    var text = el.textContent;
+    el.textContent = '';
+    text.split('').forEach(function (ch, i) {
+      var s = document.createElement('span');
+      s.className = 'w';
+      s.style.setProperty('--i', i);
+      s.textContent = ch;
+      el.appendChild(s);
+    });
+  });
+
+  // ② 给每页内的入场元素编号（用于 stagger 延迟）
+  document.querySelectorAll('.slide').forEach(function (sl) {
+    sl.querySelectorAll('[data-anim]').forEach(function (el, i) { el.style.setProperty('--i', i); });
+  });
+
+  // ================= 交互式数据探索（第 3 页） =================
+  var DATA = {
+    revenue: {
+      label: '营业收入 · 季度', unit: '亿元', dec: 2,
+      values: [2.52, 2.78, 2.95, 3.32, 3.05, 3.38, 3.62, 3.98],
+      base:   [1.96, 2.18, 2.30, 2.62, 2.52, 2.62, 2.70, 2.85],
+      accent: '#7ad0ff'
+    },
+    customers: {
+      label: '新增客户 · 季度', unit: '家', dec: 0,
+      values: [182, 205, 231, 268, 244, 279, 302, 341],
+      base:   [138, 152, 166, 190, 186, 197, 214, 248],
+      accent: '#8fb6ff'
+    },
+    renewal: {
+      label: '续约率 · 季度', unit: '%', dec: 1,
+      values: [86.2, 87.5, 88.1, 89.6, 90.2, 91.0, 91.6, 92.4],
+      base:   [81.0, 82.4, 83.0, 84.1, 85.2, 86.0, 87.1, 87.3],
+      accent: '#a78bfa'
+    },
+    cost: {
+      label: '获客成本 · 季度', unit: '元', dec: 0,
+      values: [1760, 1810, 1880, 1960, 2010, 2090, 2140, 2180],
+      base:   [1620, 1640, 1655, 1670, 1690, 1705, 1720, 1740],
+      accent: '#ffb85c'
+    }
+  };
+  var LABELS = ['24Q1', '24Q2', '24Q3', '24Q4', '25Q1', '25Q2', '25Q3', '25Q4'];
+
+  var chart = document.getElementById('chart');
+  if (chart) {
+    var svg = chart.querySelector('svg');
+    var tip = document.getElementById('tt');
+    var nameEl = document.getElementById('chartLabel');
+    var valEl = document.getElementById('chartValue');
+    var dEl = document.getElementById('chartDelta');
+    var uid = 0, pinned = -1, geo = [];
+
+    function niceStep(range, count) {
+      var raw = range / count;
+      var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+      var norm = raw / mag;
+      var mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+      return mult * mag;
+    }
+    function fmt(v, dec) { return dec ? v.toFixed(dec) : String(Math.round(v)); }
+
+    function render(tab, n) {
+      var d = DATA[tab];
+      var labels = LABELS.slice(LABELS.length - n);
+      var vals = d.values.slice(d.values.length - n);
+      var base = d.base.slice(d.base.length - n);
+      var dec = d.dec, pad = dec ? dec : (n > 6 ? 1 : 0), unit = d.unit;
+
+      // 纵向范围
+      var all = vals.concat(base);
+      var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+      var lo, hi;
+      if (dec) {
+        var stepP = niceStep(Math.max(mx - mn, 0.5) * 1.35, 3);
+        lo = Math.floor((mn - stepP * 0.35) / stepP) * stepP;
+        hi = Math.ceil((mx + stepP * 0.45) / stepP) * stepP;
+      } else {
+        var span = Math.max(mx - mn, 1);
+        lo = Math.max(0, Math.floor((mn - span * 0.30) / 20) * 20);
+        hi = Math.ceil((mx + span * 0.28) / 20) * 20;
+      }
+      if (hi <= lo) hi = lo + 1;
+
+      var x0 = 60, x1 = 706, y0 = 28, y1 = 296;
+      var bh = y1 - y0, bw = x1 - x0;
+      function X(i) { return x0 + (n > 1 ? (bw * i) / (n - 1) : bw / 2); }
+      function Y(v) { return y1 - bh * (v - lo) / (hi - lo); }
+
+      var band = bw / n, barW = Math.min(40, band * 0.44);
+      var parts = [];
+      var gid = 'g' + (++uid);
+      parts.push('<defs>'
+        + '<linearGradient id="' + gid + 'b" x1="0" y1="1" x2="0" y2="0">'
+        + '<stop offset="0" stop-color="#4d8dff" stop-opacity=".55"/>'
+        + '<stop offset="1" stop-color="' + d.accent + '"/></linearGradient>'
+        + '<linearGradient id="' + gid + 'l" x1="0" y1="0" x2="1" y2="0">'
+        + '<stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="' + d.accent + '"/></linearGradient>'
+        + '</defs>');
+
+      // 网格 + Y 轴刻度
+      var ticks = 4;
+      for (var k = 0; k <= ticks; k++) {
+        var tv = lo + (hi - lo) * k / ticks;
+        var ty = Y(tv);
+        parts.push('<line x1="' + x0 + '" y1="' + ty.toFixed(2) + '" x2="' + x1 + '" y2="' + ty.toFixed(2) + '" stroke="rgba(255,255,255,.075)" stroke-width="1"/>');
+        parts.push('<text x="' + (x0 - 12) + '" y="' + (ty + 4).toFixed(2) + '" text-anchor="end" fill="#79859b" font-size="12" font-family="inherit">' + fmt(tv, pad) + '</text>');
+      }
+
+      // 同比基准虚线
+      var bd = 'M' + X(0).toFixed(2) + ',' + Y(base[0]).toFixed(2);
+      for (var i = 1; i < n; i++) bd += ' L' + X(i).toFixed(2) + ',' + Y(base[i]).toFixed(2);
+      parts.push('<path d="' + bd + '" fill="none" stroke="rgba(255,184,92,.85)" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/>');
+
+      // 柱：本季数值
+      var barGroups = '';
+      for (var j = 0; j < n; j++) {
+        var cx = X(j), by = Y(vals[j]);
+        var yv = by, hgt = y1 - by;
+        if (hgt < 3) { hgt = 3; yv = y1 - 3; }
+        var bx = Math.min(Math.max(cx - barW / 2, x0), x1 - barW);
+        barGroups += '<rect x="' + bx.toFixed(2) + '" y="' + yv.toFixed(2) + '" width="' + barW.toFixed(2) + '" height="' + hgt.toFixed(2) + '" rx="5" fill="url(#' + gid + 'b)"/>';
+      }
+      parts.push('<g class="c-bars">' + barGroups + '</g>');
+
+      // 趋势折线
+      var line = '';
+      for (var m = 0; m < n; m++) line += (m ? ' L' : 'M') + X(m).toFixed(2) + ',' + Y(vals[m]).toFixed(2);
+      var len = 240 + n * 76;
+      parts.push('<g class="line-wrap"><path class="c-line" style="--len:' + len + '" d="' + line + '" fill="none" stroke="url(#' + gid + 'l)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>');
+
+      // 数据点（可命中）
+      var dots = '';
+      for (var q = 0; q < n; q++) {
+        dots += '<circle data-i="' + q + '" style="--i:' + q + '" cx="' + X(q).toFixed(2) + '" cy="' + Y(vals[q]).toFixed(2) + '" r="5" fill="#070a12" stroke="' + d.accent + '" stroke-width="2.4"/>';
+      }
+      parts.push('<g class="c-dots">' + dots + '</g>');
+
+      // 命中区 + 十字准线
+      var hit = '';
+      for (var r = 0; r < n; r++) {
+        hit += '<rect class="hit" data-i="' + r + '" x="' + (X(r) - band / 2).toFixed(2) + '" y="' + y0 + '" width="' + band.toFixed(2) + '" height="' + bh.toFixed(2) + '" fill="transparent" style="cursor:pointer"/>';
+      }
+      parts.push('<g class="c-hit">' + hit + '</g>');
+      parts.push('<g class="c-cursor" style="opacity:0">'
+        + '<line class="cx" x1="0" y1="' + y0 + '" x2="0" y2="' + y1 + '" stroke="rgba(122,208,255,.42)" stroke-width="1" stroke-dasharray="4 4"/>'
+        + '<circle class="cring" cx="0" cy="0" r="8.5" fill="none" stroke="#7ad0ff" stroke-width="2"/>'
+        + '</g>');
+
+      // X 轴
+      parts.push('<line x1="' + x0 + '" y1="' + (y1 + 1) + '" x2="' + x1 + '" y2="' + (y1 + 1) + '" stroke="rgba(255,255,255,.16)" stroke-width="1"/>');
+      for (var t = 0; t < n; t++) {
+        parts.push('<text x="' + X(t).toFixed(2) + '" y="' + (y1 + 22) + '" text-anchor="middle" fill="#79859b" font-size="12" font-family="inherit">' + labels[t] + '</text>');
+      }
+
+      svg.innerHTML = parts.join('');
+      geo = [];
+      for (var s = 0; s < n; s++) geo.push({ x: X(s), y: Y(vals[s]), v: vals[s], b: base[s], label: labels[s] });
+
+      // 顶部摘要
+      var last = vals[n - 1], lastBase = base[n - 1];
+      var delta = lastBase ? (last - lastBase) / lastBase * 100 : 0;
+      nameEl.textContent = d.label + ' · 近 ' + n + ' 季';
+      valEl.textContent = fmt(last, dec) + ' ' + unit;
+      dEl.textContent = (delta >= 0 ? '▲ ' : '▼ ') + Math.abs(delta).toFixed(1) + '% 同比';
+      dEl.className = 'cd' + (delta < 0 ? ' down' : '');
+
+      pinned = -1;
+      hideTip();
+      // 入场态由 run() 的调用方统一控制，这里只负责重建图表
+    }
+
+    function place(i) {
+      if (i < 0 || i >= geo.length) return;
+      var g = geo[i];
+      var cur = chart.querySelector('.c-cursor');
+      if (cur) {
+        cur.style.opacity = '1';
+        var ln = cur.querySelector('.cx'), ring = cur.querySelector('.cring');
+        if (ln) { ln.setAttribute('x1', g.x); ln.setAttribute('x2', g.x); }
+        if (ring) { ring.setAttribute('cx', g.x); ring.setAttribute('cy', g.y); }
+      }
+      var tab = chart.getAttribute('data-tab'), d = DATA[tab];
+      var dd = g.b ? (g.v - g.b) / g.b * 100 : 0;
+      tip.innerHTML = '<b>' + g.label + '</b> · ' + fmt(g.v, d.dec) + ' ' + d.unit
+        + '<br><span class="ttd">同比 ' + (dd >= 0 ? '+' : '') + dd.toFixed(1) + '% · 去年同期 ' + fmt(g.b, d.dec) + '</span>';
+      var box = chart.getBoundingClientRect();
+      var px = box.width * (g.x / 720), py = box.height * (g.y / 360);
+      if (px < 70) px = 70;
+      if (px > box.width - 70) px = box.width - 70;
+      tip.style.left = px + 'px';
+      tip.style.top = Math.max(46, py) + 'px';
+      tip.classList.add('show');
+    }
+    function hideTip() {
+      tip.classList.remove('show');
+      var cur = chart.querySelector('.c-cursor');
+      if (cur) cur.style.opacity = '0';
+    }
+
+    svg.addEventListener('mousemove', function (e) {
+      var t = e.target;
+      if (!t || !t.classList || !t.classList.contains('hit')) { if (pinned < 0) hideTip(); return; }
+      var i = parseInt(t.getAttribute('data-i'), 10);
+      place(i);
+    });
+    svg.addEventListener('mouseleave', function () {
+      if (pinned >= 0) place(pinned); else hideTip();
+    });
+    svg.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.classList || !t.classList.contains('hit')) return;
+      var i = parseInt(t.getAttribute('data-i'), 10);
+      pinned = (i === pinned) ? -1 : i;
+      if (pinned < 0) hideTip(); else place(pinned);
+    });
+
+    // 切换指标 / 时间窗口：先重建图表，再触发逐段生长
+    function run(anim) {
+      render(chart.getAttribute('data-tab'), parseInt(chart.getAttribute('data-years'), 10) || 8);
+      if (anim === false || reduce) { chart.classList.add('in'); return; }
+      chart.classList.remove('in');
+      void chart.offsetWidth;
+      chart.classList.add('in');
+    }
+    document.querySelectorAll('#metricBtns .pbtn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('#metricBtns .pbtn').forEach(function (x) { x.classList.toggle('on', x === b); });
+        chart.setAttribute('data-tab', b.getAttribute('data-tab'));
+        run();
+      });
+    });
+    document.querySelectorAll('#rangeBtns button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('#rangeBtns button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        chart.setAttribute('data-years', b.getAttribute('data-years'));
+        run();
+      });
+    });
+
+    // 首屏渲染：reduce 模式直接静态呈现，否则等进入视口时再生长
+    if (reduce) { render(chart.getAttribute('data-tab'), parseInt(chart.getAttribute('data-years'), 10) || 8); chart.classList.add('in'); }
+    else { chart.classList.remove('in'); }
+
+    // 进入视口 → 重绘并逐段生长；离开 → 收起动画态
+    var onScreen = false, hasBuilt = reduce;
+    chart.__chartReady = function (on) {
+      if (on === onScreen) return;
+      onScreen = on;
+      if (on) {
+        if (!hasBuilt) { hasBuilt = true; run(true); }
+        else { chart.classList.remove('in'); void chart.offsetWidth; chart.classList.add('in'); }
+      } else {
+        chart.classList.remove('in');
+      }
+    };
+  }
+
+  if (reduce) {
+    document.querySelectorAll('.slide').forEach(function (s) { s.classList.add('in'); });
+    document.querySelectorAll('[data-count]').forEach(function (el) { el.textContent = el.getAttribute('data-count'); });
+    return;
+  }
+
+  // ③ 就绪后才启用动画初始态（JS 失败 → 内容照常显示）
+  document.body.classList.add('anim');
+
+  // ④ 数字增长（每次进入该页重新计算一次）
+  function countUp(root) {
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+      if (el.__running) return;
+      el.__running = true;
+      var raw = String(el.getAttribute('data-count'));
+      var target = parseFloat(raw) || 0;
+      var dec = (raw.split('.')[1] || '').length;
+      var t0 = null, dur = 1100;
+      function step(now) {
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / dur);
+        var e = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * e).toFixed(dec);
+        if (p < 1) requestAnimationFrame(step);
+        else { el.textContent = target.toFixed(dec); el.__running = false; }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  // ⑤ 进入视口 → 播放该页动画
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        countUp(en.target);
+      } else {
+        en.target.classList.remove('in');
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.slide').forEach(function (s) { io.observe(s); });
+
+  // ⑥ 交互图表与它所在页的入场同步（JS 运行期绑定，避免误触 MutationObserver）
+  var chartEl = document.getElementById('chart');
+  if (chartEl && chartEl.__chartReady) {
+    var host = chartEl.closest('.slide');
+    if (host) {
+      var io2 = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { chartEl.__chartReady(en.isIntersecting); });
+      }, { threshold: 0.3 });
+      io2.observe(host);
+    }
+  }
+
+  // ⑦ 鼠标光晕跟随
+  document.querySelectorAll('.slide').forEach(function (sl) {
+    sl.addEventListener('mousemove', function (e) {
+      var r = sl.getBoundingClientRect();
+      sl.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      sl.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    }, { passive: true });
+  });
+
+})();
+</script>
+
+</body>
+</html>

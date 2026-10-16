@@ -1,0 +1,28 @@
+# ---- 依赖与构建产物 ----
+node_modules/
+release/
+dist/
+build/
+*.asar
+*.blockmap
+
+# ---- 测试/开发临时文件 ----
+tools/full-result.txt
+tools/_*
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# ---- 编辑器与系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 本地配置（可能含 API Key，绝不入库）----
+.env
+.env.local
+*.local
+
+dist-src/

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Lumina · AI HTML 幻灯片</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- 内联 SVG 图标集（Lucide 风格线性图标，stroke=currentColor 随文字颜色） -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6L12 16.9 6.7 19.6l1.1-6L3.4 9.4l6-.8z"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M9 13h6M9 16h4"/></symbol>
+  <symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></symbol>
+  <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-cursor" viewBox="0 0 24 24"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></symbol>
+  <symbol id="i-brush" viewBox="0 0 24 24"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></symbol>
+  <symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol>
+  <symbol id="i-laser" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M3 18l5-5 4 4 3-3 6 6"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 6h14M12 6v13M9 19h6"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4a2 2 0 0 1 6 0"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-layer-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-layer-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <!-- 属性面板：对齐 / 分布 / 层级 / 文本对齐 -->
+  <symbol id="i-align-left" viewBox="0 0 24 24"><path d="M3 3v18"/><path d="M7 8h11"/><path d="M7 16h7"/></symbol>
+  <symbol id="i-align-hcenter" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M6 8h12"/><path d="M8 16h8"/></symbol>
+  <symbol id="i-align-right" viewBox="0 0 24 24"><path d="M21 3v18"/><path d="M6 8h11"/><path d="M10 16h7"/></symbol>
+  <symbol id="i-align-top" viewBox="0 0 24 24"><path d="M3 3h18"/><path d="M8 7v11"/><path d="M16 7v7"/></symbol>
+  <symbol id="i-align-vcenter" viewBox="0 0 24 24"><path d="M3 12h18"/><path d="M8 6v12"/><path d="M16 8v8"/></symbol>
+  <symbol id="i-align-bottom" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M8 6v11"/><path d="M16 10v7"/></symbol>
+  <symbol id="i-dist-h" viewBox="0 0 24 24"><path d="M4 4v16"/><path d="M20 4v16"/><rect x="10" y="8" width="4" height="8" rx="1"/></symbol>
+  <symbol id="i-dist-v" viewBox="0 0 24 24"><path d="M4 4h16"/><path d="M4 20h16"/><rect x="8" y="10" width="8" height="4" rx="1"/></symbol>
+  <symbol id="i-layer-front" viewBox="0 0 24 24"><path d="M4 4h16"/><path d="M12 20V9"/><path d="m8 13 4-4 4 4"/></symbol>
+  <symbol id="i-layer-back" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M12 4v11"/><path d="m8 11 4 4 4-4"/></symbol>
+  <symbol id="i-text-left" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></symbol>
+  <symbol id="i-text-center" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M5 18h14"/></symbol>
+  <symbol id="i-text-right" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M10 12h10"/><path d="M7 18h13"/></symbol>
+  <symbol id="i-atom" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6"/><ellipse cx="12" cy="12" rx="9.2" ry="4"/><ellipse cx="12" cy="12" rx="9.2" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.2" ry="4" transform="rotate(120 12 12)"/></symbol>
+  <symbol id="i-function" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M6 19c5.5 0 6-14 12-14"/><circle cx="18" cy="5" r="1.4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><rect x="7" y="12.5" width="3" height="5.5" rx="1"/><rect x="12" y="8.5" width="3" height="9.5" rx="1"/><rect x="17" y="14.5" width="3" height="3.5" rx="1"/></symbol>
+  <symbol id="i-blank" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m5 19 14-14"/></symbol>
+</svg>
+
+<!-- 顶部工具栏 -->
+<header id="toolbar">
+  <div class="tb-left">
+    <div class="brand" title="Lumina">
+      <span class="brand-mark"><img src="icons/icon-64.png" alt="Lumina"></span>
+      <span class="brand-name">Lumina</span>
+    </div>
+    <span id="src-name" class="src-name"></span>
+  </div>
+  <div class="tb-center">
+    <div class="seg" id="mode-group">
+      <button id="btn-mode-view" class="seg-item active"><svg class="ico"><use href="#i-play"/></svg>播放</button>
+      <button id="btn-mode-edit" class="seg-item"><svg class="ico"><use href="#i-pen"/></svg>编辑</button>
+    </div>
+  </div>
+  <div class="tb-actions">
+    <button id="btn-open" class="iconbtn" title="打开 HTML 文件"><svg class="ico"><use href="#i-folder"/></svg></button>
+    <button id="btn-ai" class="iconbtn accent" title="AI 助手：生成或修改幻灯片"><svg class="ico"><use href="#i-sparkles"/></svg></button>
+    <span class="tb-sep"></span>
+    <button id="btn-present" class="iconbtn" title="演讲者模式"><svg class="ico"><use href="#i-monitor"/></svg></button>
+    <button id="btn-save" class="iconbtn" title="保存"><svg class="ico"><use href="#i-download"/></svg></button>
+    <button id="btn-export-pdf" class="iconbtn" title="导出 PDF"><svg class="ico"><use href="#i-file"/></svg></button>
+    <button id="btn-fullscreen" class="iconbtn" title="全屏"><svg class="ico"><use href="#i-fullscreen"/></svg></button>
+    <button id="btn-settings" class="iconbtn" title="设置"><svg class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+</header>
+
+<!-- 主区域 -->
+<main id="main">
+  <!-- 编辑侧栏 -->
+  <aside id="sidebar" class="hidden">
+    <div class="side-head">
+      <span>页面</span>
+      <button id="btn-add-slide" class="iconbtn small" title="新增一页"><svg class="ico"><use href="#i-plus"/></svg></button>
+    </div>
+    <div class="edit-tools">
+      <label class="bg-label" title="修改当前页背景色"><svg class="ico"><use href="#i-image"/></svg><input type="color" id="bg-color" value="#0b1020"></label>
+      <button id="btn-add-text" class="side-btn"><svg class="ico"><use href="#i-text"/></svg>添加文本框</button>
+      <button id="btn-add-image" class="side-btn"><svg class="ico"><use href="#i-image"/></svg>添加图片</button>
+    </div>
+    <div id="slide-list"></div>
+  </aside>
+
+  <!-- 舞台 -->
+  <div id="stage-wrap">
+    <div id="welcome">
+      <div class="welcome-box">
+        <div class="welcome-logo"><img src="icons/icon-192.png" alt="Lumina"></div>
+        <h1>把内容变成一场精彩的演示</h1>
+        <p>用 AI 生成或打开一份 HTML 幻灯片，直接播放、编辑、标注、演讲。</p>
+        <div class="welcome-actions">
+          <button id="welcome-open" class="btn primary"><svg class="ico"><use href="#i-folder"/></svg>打开 HTML 文件</button>
+          <button id="welcome-ai" class="btn accent-solid" title="用 AI 生成演示文稿"><svg class="ico"><use href="#i-sparkles"/></svg>用 AI 生成</button>
+        </div>
+        <div class="welcome-second">
+          <button id="welcome-blank" class="btn ghost"><svg class="ico"><use href="#i-plus"/></svg>新建空白演示</button>
+          <button id="welcome-sample" class="btn ghost"><svg class="ico"><use href="#i-star"/></svg>载入示例</button>
+          <button id="welcome-paste" class="btn ghost"><svg class="ico"><use href="#i-clipboard"/></svg>粘贴 HTML</button>
+          <button id="welcome-onboard" class="btn ghost"><svg class="ico"><use href="#i-sparkles"/></svg>选择领域</button>
+        </div>
+        <div class="drop-hint">把 .html 文件拖到这里，或粘贴 HTML 代码</div>
+      </div>
+    </div>
+    <iframe id="deck" title="幻灯片" sandbox="allow-scripts allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox"></iframe>
+    <canvas id="annot-canvas"></canvas>
+    <canvas id="laser-canvas"></canvas>
+    <div id="laser-dot" class="hidden"></div>
+  </div>
+</main>
+
+<!-- 底部控制条（播放模式） -->
+<footer id="controlbar" class="hidden">
+  <button id="btn-collapse-bar" class="iconbtn" title="收起/展开"><svg class="ico"><use href="#i-chev-down"/></svg></button>
+  <button id="btn-prev" class="iconbtn" title="上一页"><svg class="ico"><use href="#i-chev-left"/></svg></button>
+  <button id="btn-next" class="iconbtn" title="下一页"><svg class="ico"><use href="#i-chev-right"/></svg></button>
+  <div id="counter">0 / 0</div>
+  <div id="progress"><div id="progress-fill"></div></div>
+  <div class="divider"></div>
+  <button class="iconbtn tool active" data-tool="cursor" title="指针"><svg class="ico"><use href="#i-cursor"/></svg></button>
+  <button class="iconbtn tool" data-tool="pen" title="画笔"><svg class="ico"><use href="#i-brush"/></svg></button>
+  <button class="iconbtn tool" data-tool="highlighter" title="荧光笔"><svg class="ico"><use href="#i-highlighter"/></svg></button>
+  <button class="iconbtn tool" data-tool="laser" title="激光笔"><svg class="ico"><use href="#i-laser"/></svg></button>
+  <button class="iconbtn tool" data-tool="eraser" title="橡皮擦"><svg class="ico"><use href="#i-eraser"/></svg></button>
+  <button id="btn-undo" class="iconbtn" title="撤销一笔"><svg class="ico"><use href="#i-undo"/></svg></button>
+  <button id="btn-clear" class="iconbtn" title="清空本页标注"><svg class="ico"><use href="#i-trash"/></svg></button>
+  <div class="divider"></div>
+  <input type="color" id="color-picker" value="#ff2d55" title="颜色">
+  <input type="range" id="size-picker" min="1" max="40" value="4" title="粗细">
+</footer>
+
+<!-- 投影窗口：黑屏 / 白屏遮罩 -->
+<div id="stage-blank" class="hidden"></div>
+
+<!-- 舞台迷你条（投影窗口，鼠标移入才出现） -->
+<div id="stage-mini-bar" class="hidden">
+  <button id="stage-prev" class="iconbtn light" title="上一页"><svg class="ico"><use href="#i-chev-left"/></svg></button>
+  <span id="stage-counter">- / -</span>
+  <button id="stage-next" class="iconbtn light" title="下一页"><svg class="ico"><use href="#i-chev-right"/></svg></button>
+  <span class="smb-sep"></span>
+  <button id="stage-blank-btn" class="iconbtn light" title="黑屏 / 恢复（B）"><svg class="ico"><use href="#i-blank"/></svg></button>
+  <button id="stage-stop" class="iconbtn light" title="结束演讲"><svg class="ico"><use href="#i-stop"/></svg></button>
+</div>
+
+<!-- 演讲者控制台（PPT 演示者视图式布局：左=当前页，右上=下一页，右下=备注大字，底部=缩略图+标注） -->
+<div id="presenter-console" class="hidden">
+  <header class="pc-top">
+    <div class="pc-brand"><svg class="ico"><use href="#i-monitor"/></svg>演讲者控制台</div>
+    <div class="pc-stat">
+      <span class="pc-index" id="pc-index">1 / 1</span>
+      <span class="pc-title" id="pc-title"></span>
+    </div>
+    <div class="pc-clock">
+      <span class="pc-timer" id="pc-timer">00:00</span>
+      <button id="pc-timer-toggle" class="iconbtn small" title="暂停 / 继续计时"><svg class="ico"><use href="#i-stop"/></svg></button>
+      <button id="pc-timer-reset" class="iconbtn small" title="计时归零"><svg class="ico"><use href="#i-undo"/></svg></button>
+    </div>
+    <div class="pc-actions">
+      <button id="pc-black" class="btn small" title="投影黑屏（快捷键 B）"><svg class="ico"><use href="#i-blank"/></svg>黑屏</button>
+      <button id="pc-white" class="btn small" title="投影白屏（快捷键 W）">白屏</button>
+      <button id="btn-stop-present" class="btn small primary"><svg class="ico"><use href="#i-stop"/></svg>结束演讲</button>
+    </div>
+  </header>
+
+  <div id="pc-projection" class="pc-projection hidden"></div>
+
+  <div class="pc-body">
+    <section class="pc-main">
+      <div class="pc-preview big">
+        <iframe id="pc-cur" sandbox="allow-scripts allow-same-origin"></iframe>
+        <canvas id="pc-cur-canvas"></canvas>
+      </div>
+      <div class="pc-navrow">
+        <button id="pc-prev" class="btn"><svg class="ico"><use href="#i-chev-left"/></svg>上一页</button>
+        <span class="pc-navhint">← → / 空格 翻页 · B 黑屏 · W 白屏 · Esc 结束</span>
+        <button id="pc-next-btn" class="btn primary">下一页<svg class="ico"><use href="#i-chev-right"/></svg></button>
+      </div>
+    </section>
+
+    <aside class="pc-side">
+      <div class="pc-label">下一页 <span id="pc-next-label"></span></div>
+      <div class="pc-preview small"><iframe id="pc-next" sandbox="allow-scripts allow-same-origin"></iframe></div>
+      <div class="pc-label pc-notes-head">演讲者备注
+        <span class="pc-fontsize">
+          <button id="pc-fs-down" title="备注字号减小">A−</button>
+          <button id="pc-fs-up" title="备注字号放大">A+</button>
+        </span>
+      </div>
+      <div id="pc-notes" class="pc-notes">（本页没有备注）</div>
+    </aside>
+  </div>
+
+  <footer class="pc-foot">
+    <div id="pc-thumbs" class="pc-thumbs"></div>
+    <div class="pc-tools">
+      <button class="pc-tool active" data-tool="cursor" title="指针"><svg class="ico"><use href="#i-cursor"/></svg></button>
+      <button class="pc-tool" data-tool="pen" title="画笔"><svg class="ico"><use href="#i-brush"/></svg></button>
+      <button class="pc-tool" data-tool="highlighter" title="荧光笔"><svg class="ico"><use href="#i-highlighter"/></svg></button>
+      <button class="pc-tool" data-tool="laser" title="激光笔"><svg class="ico"><use href="#i-laser"/></svg></button>
+      <button class="pc-tool" data-tool="eraser" title="橡皮"><svg class="ico"><use href="#i-eraser"/></svg></button>
+      <input type="color" id="pc-color" value="#ff2d55" title="颜色">
+      <input type="range" id="pc-size" min="1" max="40" value="4" title="粗细">
+      <button id="pc-undo" class="iconbtn small" title="撤销"><svg class="ico"><use href="#i-undo"/></svg></button>
+      <button id="pc-clear" class="iconbtn small" title="清空本页笔迹"><svg class="ico"><use href="#i-trash"/></svg></button>
+    </div>
+  </footer>
+</div>
+
+<!-- 图片对话框 -->
+<div id="img-dialog" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">添加图片</div>
+    <input type="text" id="img-url" placeholder="粘贴图片网址，例如 https://example.com/pic.png">
+    <div class="modal-row">
+      <button id="img-choose" class="btn"><svg class="ico"><use href="#i-folder"/></svg>本地文件</button>
+      <span class="modal-gap"></span>
+      <button id="img-cancel" class="btn">取消</button>
+      <button id="img-ok" class="btn primary">添加</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="img-file" accept="image/*" hidden>
+
+<!-- AI 助手对话框 -->
+<div id="ai-dialog" class="modal hidden">
+  <div class="modal-box ai-box">
+    <div class="modal-title"><svg class="ico"><use href="#i-sparkles"/></svg>AI 助手</div>
+    <div class="ai-context" id="ai-context">目标：从零生成一份新演示文稿</div>
+    <div class="ai-modes">
+      <button id="ai-mode-new" class="ai-mode active"><svg class="ico"><use href="#i-sparkles"/></svg>生成新演示</button>
+      <button id="ai-mode-page" class="ai-mode"><svg class="ico"><use href="#i-pen"/></svg>改这一页</button>
+      <button id="ai-mode-all" class="ai-mode"><svg class="ico"><use href="#i-file"/></svg>改整个演示</button>
+    </div>
+    <div class="ai-section">
+      <div class="ai-label">告诉 AI 你想怎么改 / 要什么内容</div>
+      <textarea id="ai-prompt" class="ai-textarea" placeholder="例如：做一份 8 页的季度业绩汇报，深色商务风，突出销售额增长……"></textarea>
+    </div>
+    <div class="ai-section">
+      <div class="ai-label">上传素材（真实数据 / 图片 / 文字）</div>
+      <div class="ai-materials" id="ai-materials"></div>
+      <div class="modal-row">
+        <button id="ai-add-image" class="btn"><svg class="ico"><use href="#i-image"/></svg>图片</button>
+        <button id="ai-add-text" class="btn"><svg class="ico"><use href="#i-upload"/></svg>文本 / 数据</button>
+      </div>
+    </div>
+    <div class="ai-section">
+      <div class="ai-label">使用模型</div>
+      <div class="ai-model-row">
+        <span id="ai-current-model" class="ai-current">未配置模型</span>
+        <button id="ai-open-settings" class="btn small"><svg class="ico"><use href="#i-settings"/></svg>去设置</button>
+      </div>
+    </div>
+    <div class="ai-status" id="ai-status"></div>
+    <div class="modal-row">
+      <button id="ai-cancel" class="btn">取消</button>
+      <span class="modal-gap"></span>
+      <button id="ai-go" class="btn primary"><svg class="ico"><use href="#i-sparkles"/></svg>生成</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="ai-img-file" accept="image/*" multiple hidden>
+<input type="file" id="ai-text-file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.log,.text" multiple hidden>
+
+<!-- 设置 -->
+<div id="settings-dialog" class="modal hidden">
+  <div class="modal-box settings-box">
+    <div class="modal-title"><svg class="ico"><use href="#i-settings"/></svg>设置</div>
+    <div class="settings-body">
+      <div class="set-group">
+        <div class="set-label">外观</div>
+        <div class="set-row"><span class="set-name">界面主题</span>
+          <select id="set-theme" class="set-select">
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+            <option value="system">跟随系统</option>
+          </select>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">播放</div>
+        <div class="set-row"><span class="set-name">单击画面翻页</span><label class="switch"><input type="checkbox" id="set-clicknav" checked><i></i></label></div>
+        <div class="set-row"><span class="set-name">滚轮翻页</span><label class="switch"><input type="checkbox" id="set-wheelnav" checked><i></i></label></div>
+        <div class="set-row"><span class="set-name">打开文件后进入</span>
+          <select id="set-defaultmode" class="set-select">
+            <option value="view">播放模式</option>
+            <option value="edit">编辑模式</option>
+          </select>
+        </div>
+        <div class="set-row"><span class="set-name">全屏时自动隐藏控制条</span><label class="switch"><input type="checkbox" id="set-barhide" checked><i></i></label></div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">标注</div>
+        <div class="set-row"><span class="set-name">默认颜色</span><input type="color" id="set-pencolor" value="#ff2d55"></div>
+        <div class="set-row"><span class="set-name">默认粗细</span><input type="range" id="set-pensize" min="1" max="40" value="4"></div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">AI 模型（API Key 仅保存在本机）</div>
+        <div class="ai-model-row">
+          <select id="ai-model-select" class="ai-select" title="选择要使用的模型"></select>
+          <button id="ai-add-model" class="btn small"><svg class="ico"><use href="#i-plus"/></svg>添加</button>
+          <button id="ai-del-model" class="iconbtn" title="删除当前模型"><svg class="ico"><use href="#i-trash"/></svg></button>
+        </div>
+        <!-- 新增模型（只填一次，之后只在上面的下拉里选） -->
+        <div id="ai-model-form" class="ai-config hidden">
+          <label class="full">服务商
+            <select id="ai-preset">
+              <option value="deepseek">DeepSeek</option>
+              <option value="openai">OpenAI</option>
+              <option value="moonshot">Kimi（Moonshot）</option>
+              <option value="qwen">通义千问</option>
+              <option value="zhipu">智谱 GLM</option>
+              <option value="custom">自定义（其他兼容服务）</option>
+            </select>
+          </label>
+          <label class="full custom-only hidden">接口地址 <input type="text" id="ai-base-url" placeholder="https://your-endpoint/v1"></label>
+          <label class="full">API Key <input type="password" id="ai-key" placeholder="粘贴 API Key（仅保存在本机）"></label>
+          <label class="full">模型
+            <span class="ai-model-pick">
+              <select id="ai-model" title="选择模型"></select>
+              <input type="text" id="ai-model-custom" class="hidden" placeholder="输入模型名，如 deepseek-chat">
+              <button id="ai-fetch-models" class="btn small" title="从服务端自动获取可用模型"><svg class="ico"><use href="#i-upload"/></svg>获取</button>
+            </span>
+          </label>
+          <label>图片支持
+            <select id="ai-vision">
+              <option value="1">多模态（可看图）</option>
+              <option value="0">纯文本（不看图）</option>
+            </select>
+          </label>
+          <div class="modal-row full">
+            <button id="ai-save-model" class="btn primary small">保存</button>
+            <button id="ai-cancel-model" class="btn small">取消</button>
+            <span id="ai-model-hint" class="ai-hint"></span>
+          </div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">AI 提示词（决定 AI 怎么写 HTML）</div>
+        <div class="set-note">这段规则会作为系统提示发给模型，可自由调整风格、页数与内容要求。为保证生成结果能直接播放，<b>输出格式</b>相关的要求由软件固定，不在此处。</div>
+        <textarea id="set-ai-prompt" class="set-prompt" rows="10" spellcheck="false"></textarea>
+        <div class="set-row set-actions">
+          <button id="set-prompt-save" class="btn small primary">保存</button>
+          <button id="set-prompt-reset" class="btn small">恢复默认</button>
+          <span id="set-prompt-hint" class="ai-hint"></span>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-label">关于</div>
+        <div class="set-about"><img class="set-about-icon" src="icons/icon-64.png" alt=""><span><b>Lumina</b> · AI HTML 幻灯片播放器　<span class="ver">v1.0.0</span></span></div>
+        <div class="set-row set-actions">
+          <button id="set-onboard" class="btn small">重新选择领域</button>
+          <button id="set-reset" class="btn small">恢复默认设置</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-row">
+      <button id="settings-close" class="btn primary">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 提示气泡 -->
+<div id="toast" class="hidden"></div>
+
+<!-- 首次启动：选择行业（同时作为使用指引入口） -->
+<div id="onboard" class="hidden">
+  <div class="ob-box">
+    <div class="ob-logo"><img src="icons/icon-192.png" alt="Lumina"></div>
+    <h1>欢迎使用 Lumina</h1>
+    <p>先选一个领域开始。每份示例都可以直接播放，同时它本身就是一份使用指引。</p>
+    <div class="ob-grid">
+      <button class="ob-card" data-deck="physics">
+        <span class="ob-ico"><svg class="ico"><use href="#i-atom"/></svg></span>
+        <b>物理教学</b><em>抛体运动 · 单摆</em>
+      </button>
+      <button class="ob-card" data-deck="math">
+        <span class="ob-ico"><svg class="ico"><use href="#i-function"/></svg></span>
+        <b>数学教学</b><em>函数图像 · 导数</em>
+      </button>
+      <button class="ob-card" data-deck="business">
+        <span class="ob-ico"><svg class="ico"><use href="#i-chart"/></svg></span>
+        <b>商务数据</b><em>KPI · 趋势看板</em>
+      </button>
+      <button class="ob-card" data-deck="tour">
+        <span class="ob-ico"><svg class="ico"><use href="#i-sparkles"/></svg></span>
+        <b>了解软件</b><em>功能与操作指引</em>
+      </button>
+    </div>
+    <div class="ob-foot">
+      <button id="ob-skip" class="btn ghost">跳过，直接开始</button>
+    </div>
+  </div>
+</div>
+
+<!-- 隐藏文件输入 -->
+<input type="file" id="file-input" accept=".html,.htm,text/html" hidden>
+
+<script src="js/events.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/player.js"></script>
+<script src="js/annotate.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/presenter.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

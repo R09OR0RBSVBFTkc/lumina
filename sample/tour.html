@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumina 使用指引 · 会动的演示</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:#070a12; color:#e8ecf6;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+
+  /* ============ 幻灯片 ============ */
+  .slide{
+    width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:9vh 8vw;position:relative;overflow:hidden;box-sizing:border-box;
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .slide .glow{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;
+    background:radial-gradient(520px circle at var(--mx,50%) var(--my,35%),rgba(77,141,255,.16),transparent 62%);
+  }
+  .slide:hover .glow{opacity:1;}
+  .slide::before{
+    content:"";position:absolute;width:70vw;height:70vw;border-radius:50%;
+    background:radial-gradient(circle,rgba(77,141,255,.14),transparent 62%);
+    top:-30vw;right:-22vw;filter:blur(28px);pointer-events:none;
+  }
+  .slide.alt::before{
+    background:radial-gradient(circle,rgba(167,139,250,.13),transparent 62%);
+    top:auto;bottom:-32vw;left:-20vw;right:auto;
+  }
+  .inner{width:100%;max-width:1080px;position:relative;z-index:2;}
+  .eyebrow{font-size:12.5px;letter-spacing:.34em;text-transform:uppercase;font-weight:600;margin-bottom:22px;
+    background:linear-gradient(90deg,#4d8dff,#7ad0ff,#a78bfa,#4d8dff);background-size:300% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 7s ease infinite;}
+  @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+  h1{font-size:clamp(40px,6.8vw,80px);font-weight:700;line-height:1.05;letter-spacing:-.03em;margin-bottom:24px;}
+  h2{font-size:clamp(30px,4.6vw,54px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin-bottom:18px;}
+  .lead{font-size:clamp(15px,1.65vw,20px);line-height:1.75;color:#a7b3cb;max-width:780px;}
+  .accent{color:#7ad0ff;}
+  .kbd{display:inline-block;padding:2px 9px;border-radius:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-size:13px;font-family:ui-monospace,Menlo,monospace;color:#dbe4ff;}
+
+  /* ============ 动效基础（JS 就绪才启用，保证 JS 失败时内容仍可见） ============ */
+  body.anim [data-anim]{
+    opacity:0;transform:translateY(26px);
+    transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1);
+    transition-delay:calc(var(--i,0) * 85ms);
+  }
+  body.anim .slide.in [data-anim]{opacity:1;transform:none;}
+  body.anim .w{display:inline-block;opacity:0;transform:translateY(.7em) rotate(1.5deg);
+    transition:opacity .5s ease,transform .65s cubic-bezier(.22,.61,.36,1);transition-delay:calc(var(--i,0) * 70ms);}
+  body.anim .slide.in .w{opacity:1;transform:none;}
+  /* SVG 矢量绘制 */
+  .draw path,.draw line,.draw circle,.draw rect,.draw polyline{
+    stroke-dasharray:var(--len,420);stroke-dashoffset:var(--len,420);
+    transition:stroke-dashoffset 1.3s cubic-bezier(.45,.05,.2,1) .25s;
+  }
+  body.anim .slide.in .draw path,body.anim .slide.in .draw line,body.anim .slide.in .draw circle,
+  body.anim .slide.in .draw rect,body.anim .slide.in .draw polyline{stroke-dashoffset:0;}
+  /* 进度条生长 */
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:14px;}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4d8dff,#7ad0ff);transition:width 1.3s cubic-bezier(.22,.61,.36,1) .3s;}
+  body.anim .slide.in .bar i{width:var(--w,60%);}
+
+  /* ============ 组件 ============ */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:42px;}
+  .card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:20px;
+    padding:26px 24px;backdrop-filter:blur(12px);transition:transform .3s cubic-bezier(.22,.61,.36,1),border-color .3s;}
+  .card:hover{border-color:rgba(122,208,255,.35);}
+  .card .ico{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4d8dff,#7ad0ff);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .card .ico svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+  .card h3{font-size:19px;font-weight:650;margin-bottom:8px;letter-spacing:-.01em;}
+  .card p{font-size:14.5px;line-height:1.65;color:#98a4bd;}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:40px;}
+  @media (max-width:720px){.cols{grid-template-columns:1fr;}}
+  .col{border-radius:20px;padding:26px 24px;border:1px solid rgba(255,255,255,.09);}
+  .col.old{background:rgba(255,255,255,.03);}
+  .col.new{background:linear-gradient(160deg,rgba(77,141,255,.13),rgba(167,139,250,.07));border-color:rgba(122,208,255,.28);}
+  .col h3{font-size:17px;font-weight:700;margin-bottom:16px;}
+  .col.old h3{color:#8b96ad;}
+  .col ul{list-style:none;display:flex;flex-direction:column;gap:11px;}
+  .col li{font-size:14.5px;line-height:1.55;color:#a7b3cb;padding-left:22px;position:relative;}
+  .col li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:2px;background:#4a556b;}
+  .col.new li::before{background:linear-gradient(135deg,#4d8dff,#7ad0ff);}
+
+  .stats{display:flex;flex-wrap:wrap;gap:34px;margin-top:40px;}
+  .stat .n{font-size:clamp(38px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1;
+    background:linear-gradient(135deg,#7ad0ff,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;
+    font-variant-numeric:tabular-nums;}
+  .stat .u{font-size:20px;font-weight:600;color:#7ad0ff;}
+  .stat .l{font-size:13.5px;color:#8b96ad;margin-top:8px;letter-spacing:.02em;}
+
+  .badge{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:99px;
+    background:rgba(77,141,255,.12);border:1px solid rgba(77,141,255,.3);color:#8fb6ff;font-size:13px;font-weight:600;margin-bottom:28px;}
+  .badge i{width:7px;height:7px;border-radius:50%;background:#4d8dff;display:block;animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+  .foot{margin-top:50px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);color:#79859b;font-size:13.5px;}
+
+  @media (prefers-reduced-motion: reduce){
+    body.anim [data-anim],body.anim .w{opacity:1 !important;transform:none !important;transition:none !important;}
+    .bar i{width:var(--w,60%) !important;transition:none !important;}
+    .draw path,.draw line,.draw circle,.draw rect,.draw polyline{stroke-dashoffset:0 !important;transition:none !important;}
+    .eyebrow,.badge i{animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. 封面：逐字浮现 ============ -->
+<section class="slide" data-title="指引：会动的演示"
+  data-notes="开场：强调这不是静态页面——它会随滚动入场、能计算、能响应鼠标。让观众意识到这是 HTML 而不是 PPT。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="badge" data-anim><i></i>Lumina 使用指引 · 会动的演示</div>
+    <h1><span data-split>会动的</span><br><span class="accent" data-split>幻灯片</span></h1>
+    <p class="lead" data-anim>这不是一张张静态图片。每一页都随滚动入场、能实时计算、能响应你的鼠标——<br>这些是普通 PPT 做不到的。</p>
+    <div class="foot" data-anim>按下 <span class="kbd">→</span> 或滚动，看看它会怎么动</div>
+  </div>
+</section>
+
+<!-- ============ 2. 对比：普通 PPT vs HTML 演示 ============ -->
+<section class="slide alt" data-title="为什么不一样"
+  data-notes="核心卖点页：左侧是普通 PPT 的限制，右侧是 HTML 演示的能力。放慢速度讲，这是全场的转折点。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>THE DIFFERENCE</div>
+    <h2 data-anim>同样是演示，差别在这里</h2>
+    <div class="cols">
+      <div class="col old" data-anim>
+        <h3>普通 PPT</h3>
+        <ul>
+          <li>版式固定，换个屏幕就变形</li>
+          <li>动画要一页页手动设置</li>
+          <li>数据变化只能重新截图</li>
+          <li>放大会糊，矢量图形失真</li>
+        </ul>
+      </div>
+      <div class="col new" data-anim>
+        <h3>HTML 演示（本软件）</h3>
+        <ul>
+          <li>矢量渲染，任意分辨率都清晰</li>
+          <li>随滚动自动入场，无需配音效点</li>
+          <li>数据可实时计算、动态生长</li>
+          <li>能响应鼠标、点击与键盘</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot" data-anim>把鼠标移到页面任意位置——背景的光会跟着你。</div>
+  </div>
+</section>
+
+<!-- ============ 3. 三种开始方式 ============ -->
+<section class="slide" data-title="三种开始方式"
+  data-notes="说明入口：打开已有 HTML、让 AI 直接生成、粘贴 HTML 代码。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>GETTING STARTED</div>
+    <h2 data-anim>三种方式，立刻开始</h2>
+    <div class="grid">
+      <div class="card tilt" data-anim>
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+        <h3>打开 HTML</h3>
+        <p>拖入或选择已有的 AI 生成 HTML，自动识别每一页，立刻播放。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+        <h3>用 AI 生成</h3>
+        <p>描述需求、上传数据或图片，AI 直接产出带动效的幻灯片。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4a2 2 0 0 1 6 0"/></svg></div>
+        <h3>粘贴 HTML</h3>
+        <p>任何地方复制来的 HTML 代码，粘贴即可打开，无需存成文件。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. 元素级编辑 ============ -->
+<section class="slide alt" data-title="元素级编辑"
+  data-notes="强调：直接对 HTML 元素操作——点谁改谁。进入编辑模式后，动效会暂时停止，方便你选中任何元素。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>EDIT</div>
+    <h2 data-anim>点谁改谁，像设计工具一样</h2>
+    <p class="lead" data-anim>单击任意元素选中，拖动移动、八向手柄缩放；双击直接改文字。改动实时写回 HTML。</p>
+    <div class="grid">
+      <div class="card tilt" data-anim><h3>移动与缩放</h3><p>拖动元素即移动，八个手柄自由缩放，角手柄等比、边手柄单轴。</p></div>
+      <div class="card tilt" data-anim><h3>样式与层级</h3><p>加粗、斜体、字号、文字色、背景色、上移一层下移一层，一键完成。</p></div>
+      <div class="card tilt" data-anim><h3>快捷键</h3><p><span class="kbd">Ctrl+D</span> 复制元素 · <span class="kbd">Ctrl+Z</span> 撤销 · 方向键微调 1px</p></div>
+    </div>
+    <div class="foot" data-anim>切到「编辑」模式，动效会自动暂停，所有元素都能选中。</div>
+  </div>
+</section>
+
+<!-- ============ 5. 演讲者模式 ============ -->
+<section class="slide" data-title="演讲者模式"
+  data-notes="投影放正片，自己看备注与下一页预览，双向翻页同步。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>PRESENT</div>
+    <h2 data-anim>演讲者模式，从容不迫</h2>
+    <p class="lead" data-anim>投影窗口放正片，你的窗口显示当前页、下一页预览、演讲者备注、计时器和全部缩略图；两边翻页实时同步。</p>
+    <div class="grid">
+      <div class="card tilt" data-anim><h3>下一页预览</h3><p>提前知道接下来讲什么，衔接自然。</p></div>
+      <div class="card tilt" data-anim><h3>演讲者备注</h3><p>每页的 <span class="kbd">data-notes</span> 只在你的窗口显示。</p></div>
+      <div class="card tilt" data-anim><h3>计时器</h3><p>自动计时，掌握节奏，不超时。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. 标注工具：SVG 矢量绘制动画 ============ -->
+<section class="slide alt" data-title="标注工具"
+  data-notes="看这条线——它是矢量绘制的。笔迹以归一化坐标保存，投影与控制台自动对齐。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>ANNOTATE</div>
+    <h2 data-anim>边讲边画，讲到哪标到哪</h2>
+    <p class="lead" data-anim>画笔、荧光笔、激光笔、橡皮擦一应俱全；笔迹以归一化坐标保存，投影与控制台自动对齐。</p>
+    <svg class="draw" viewBox="0 0 600 90" style="width:100%;max-width:600px;margin-top:34px;fill:none;stroke:#7ad0ff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;" data-anim>
+      <path style="--len:620" d="M8 62 C 90 6, 150 88, 230 40 S 360 6, 430 54 S 540 82, 592 30"/>
+    </svg>
+    <div class="grid" style="margin-top:26px;">
+      <div class="card tilt" data-anim><h3>落笔光点</h3><p>画笔与橡皮显示落笔位置光点，激光笔带荧光轨迹。</p></div>
+      <div class="card tilt" data-anim><h3>同步显示</h3><p>在控制台画，投影上同步出现。</p></div>
+      <div class="card tilt" data-anim><h3>撤销与清空</h3><p>画错了随时撤销，或一键清空本页。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. 动效实验室：数字 + 进度 + 绘制 ============ -->
+<section class="slide" data-title="动效实验室"
+  data-notes="这一页专门展示 HTML 的能力：数字实时计算、进度条生长、矢量路径逐步绘制。全都由浏览器实时渲染，不是视频、不是GIF。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>LIVE, NOT A VIDEO</div>
+    <h2 data-anim>这些数字，是刚刚算出来的</h2>
+    <p class="lead" data-anim>下面每一个数字、每一段进度、每一条曲线，都由浏览器此刻实时渲染——不是图片，也不是视频。</p>
+
+    <div class="stats">
+      <div class="stat" data-anim><div class="n"><span data-count="60">0</span><span class="u">fps</span></div><div class="l">流畅帧率</div></div>
+      <div class="stat" data-anim><div class="n"><span data-count="128">0</span><span class="u">ms</span></div><div class="l">入场响应</div></div>
+      <div class="stat" data-anim><div class="n">∞<span class="u">px</span></div><div class="l">矢量不失真</div></div>
+    </div>
+
+    <div style="margin-top:38px;max-width:620px;" data-anim>
+      <div style="display:flex;justify-content:space-between;font-size:13.5px;color:#8b96ad;">
+        <span>渲染性能</span><span>GPU 加速</span>
+      </div>
+      <div class="bar" style="--w:92%"><i></i></div>
+    </div>
+    <div style="margin-top:20px;max-width:620px;" data-anim>
+      <div style="display:flex;justify-content:space-between;font-size:13.5px;color:#8b96ad;">
+        <span>内容复用</span><span>一次编写，多端播放</span>
+      </div>
+      <div class="bar" style="--w:100%"><i style="background:linear-gradient(90deg,#a78bfa,#7ad0ff)"></i></div>
+    </div>
+
+    <svg class="draw" viewBox="0 0 620 160" style="width:100%;max-width:620px;margin-top:34px;fill:none;stroke:#a78bfa;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;" data-anim>
+      <polyline style="--len:900" points="10,140 120,96 230,118 340,52 450,74 610,16"/>
+      <circle style="--len:340" cx="340" cy="52" r="9" stroke="#7ad0ff"/>
+      <circle style="--len:340" cx="610" cy="16" r="9" stroke="#7ad0ff"/>
+    </svg>
+  </div>
+</section>
+
+
+<!-- 操作指引 -->
+<section class="slide" data-title="操作指引：开始使用"
+  data-notes="给第一次使用的人：三种开始方式（打开/AI 生成/粘贴）、播放与编辑如何切换、标注工具怎么用、演讲者模式怎么开。建议在这里停留久一点。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>QUICK START</div>
+    <h2 data-anim>现在就可以开始</h2>
+    <div class="grid">
+      <div class="card tilt" data-anim>
+        <h3>三种开始方式</h3>
+        <p>① 拖入 .html 文件；② 点「用 AI 生成」描述需求；③ 直接粘贴 HTML 代码。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <h3>播放 / 编辑一键切换</h3>
+        <p>顶部中间的开关。编辑模式下：单击选中元素、拖动移动、<span class="kbd">Shift</span> 点选多个、双击改文字。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <h3>右侧属性面板</h3>
+        <p>按元素类型给出不同选项：文本有字体行高、图片有滤镜、形状有渐变与内边距。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <h3>标注与演讲</h3>
+        <p>底部可选画笔 / 荧光笔 / 激光笔；点「演讲者模式」把正片投到副屏，本机看备注与下一页。</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <h3>常用快捷键</h3>
+        <p><span class="kbd">←</span> <span class="kbd">→</span> 翻页 · <span class="kbd">B</span>/<span class="kbd">W</span> 黑屏/白屏 · <span class="kbd">Ctrl+Z</span> 撤销 · <span class="kbd">Ctrl+S</span> 保存</p>
+      </div>
+      <div class="card tilt" data-anim>
+        <h3>AI 与设置</h3>
+        <p>设置里填一次 API Key 即可多模型切换；还能编辑 AI 的提示词，让它按你的规范写 HTML。</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ 8. 结语 ============ -->
+<section class="slide alt" data-title="结语"
+  data-notes="收尾：内容才是主角，HTML 让它活起来。">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="eyebrow" data-anim>READY</div>
+    <h2><span data-split>内容才是主角，</span><br><span data-split>HTML 让它活起来。</span></h2>
+    <p class="lead" data-anim>Lumina 不引入任何框架，不替你决定风格——它把你手里的 HTML 变成一场可以讲、可以动、可以互动的演示。</p>
+    <div class="foot" data-anim>如需编辑，切到「编辑」模式；动效会自动暂停，方便你修改任意元素。</div>
+  </div>
+</section>
+
+<script>
+/* 动效引擎：滚动驱动入场 + 逐字浮现 + 数字增长 + 光晕跟随 + 3D 倾斜
+   设计原则：① JS 未就绪时内容完整可见；② 尊重 prefers-reduced-motion；③ 只用 transform/opacity，GPU 加速 */
+(function () {
+  var reduce = false;
+  try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  // ① 逐字拆分（在加 anim 类之前完成，避免闪烁）
+  document.querySelectorAll('[data-split]').forEach(function (el) {
+    var text = el.textContent;
+    el.textContent = '';
+    text.split('').forEach(function (ch, i) {
+      var s = document.createElement('span');
+      s.className = 'w';
+      s.style.setProperty('--i', i);
+      s.textContent = ch;
+      el.appendChild(s);
+    });
+  });
+
+  // ② 给每页内的入场元素编号（用于 stagger 延迟）
+  document.querySelectorAll('.slide').forEach(function (sl) {
+    sl.querySelectorAll('[data-anim]').forEach(function (el, i) { el.style.setProperty('--i', i); });
+  });
+
+  if (reduce) {
+    document.querySelectorAll('.slide').forEach(function (s) { s.classList.add('in'); });
+    document.querySelectorAll('[data-count]').forEach(function (el) { el.textContent = el.getAttribute('data-count'); });
+    return;
+  }
+
+  // ③ 就绪后才启用动画初始态（JS 失败 → 内容照常显示）
+  document.body.classList.add('anim');
+
+  // ④ 数字增长（每次进入该页重新计算一次）
+  function countUp(root) {
+    root.querySelectorAll('[data-count]').forEach(function (el) {
+      if (el.__running) return;
+      el.__running = true;
+      var raw = String(el.getAttribute('data-count'));
+      var target = parseFloat(raw) || 0;
+      var dec = (raw.split('.')[1] || '').length;
+      var t0 = null, dur = 1100;
+      function step(now) {
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / dur);
+        var e = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * e).toFixed(dec);
+        if (p < 1) requestAnimationFrame(step);
+        else { el.textContent = target.toFixed(dec); el.__running = false; }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  // ⑤ 进入视口 → 播放该页动画
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        countUp(en.target);
+      } else {
+        en.target.classList.remove('in');
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.slide').forEach(function (s) { io.observe(s); });
+
+  // ⑥ 鼠标光晕跟随
+  document.querySelectorAll('.slide').forEach(function (sl) {
+    sl.addEventListener('mousemove', function (e) {
+      var r = sl.getBoundingClientRect();
+      sl.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      sl.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    }, { passive: true });
+  });
+
+  // ⑦ 卡片 3D 倾斜
+  document.querySelectorAll('.tilt').forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var r = card.getBoundingClientRect();
+      var rx = ((e.clientY - r.top) / r.height - 0.5) * -9;
+      var ry = ((e.clientX - r.left) / r.width - 0.5) * 9;
+      card.style.transform = 'perspective(760px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(-4px)';
+    });
+    card.addEventListener('mouseleave', function () { card.style.transform = ''; });
+  });
+})();
+</script>
+
+</body>
+</html>
