@@ -543,12 +543,16 @@ HSP.editor = (function () {
   function moveElBy(el, dx, dy) {
     if (!dx && !dy) return;
     var cs = getComputedStyle(el);
-    if (cs.position === 'static') el.style.position = 'relative';
-    var abs = (cs.position === 'absolute' || cs.position === 'fixed');
-    var baseL = parseFloat(el.style.left);
-    var baseT = parseFloat(el.style.top);
-    if (isNaN(baseL)) baseL = abs ? (parseFloat(cs.left) || 0) : 0;
-    if (isNaN(baseT)) baseT = abs ? (parseFloat(cs.top) || 0) : 0;
+    var wasStatic = cs.position === 'static';
+    if (wasStatic) el.style.position = 'relative';
+    var baseL = 0, baseT = 0;
+    if (!wasStatic) {
+      var op = el.offsetParent || doc().body;
+      var r = el.getBoundingClientRect();
+      var opR = op.getBoundingClientRect();
+      baseL = Math.round(r.left - opR.left);
+      baseT = Math.round(r.top - opR.top);
+    }
     el.style.left = (baseL + dx) + 'px';
     el.style.top = (baseT + dy) + 'px';
   }
@@ -603,6 +607,7 @@ HSP.editor = (function () {
     liveSel().forEach(function (el) {
       var p = el.parentElement;
       if (!p) return;
+      el.style.zIndex = ''; // 层级统一走 DOM 顺序，清掉 z-index 避免两套机制打架
       if (kind === 'front') p.appendChild(el);
       else if (kind === 'back') p.insertBefore(el, p.firstChild);
       else if (kind === 'up' && el.nextElementSibling) p.insertBefore(el.nextElementSibling, el);
@@ -993,12 +998,18 @@ HSP.editor = (function () {
       type: 'move',
       startX: e.clientX, startY: e.clientY,
       items: moves.map(function (el) {
-        return {
-          el: el,
-          origLeft: parseFloat(el.style.left) || 0,
-          origTop: parseFloat(el.style.top) || 0,
-          wasStatic: getComputedStyle(el).position === 'static'
-        };
+        // 用实际像素位置做起点：left/top 可能是 %/em/vh/auto，parseFloat 会丢单位导致拖动跳位
+        var cs = getComputedStyle(el);
+        var wasStatic = cs.position === 'static';
+        var origLeft = 0, origTop = 0;
+        if (!wasStatic) {
+          var op = el.offsetParent || doc().body;
+          var r = el.getBoundingClientRect();
+          var opR = op.getBoundingClientRect();
+          origLeft = Math.round(r.left - opR.left);
+          origTop = Math.round(r.top - opR.top);
+        }
+        return { el: el, origLeft: origLeft, origTop: origTop, wasStatic: wasStatic };
       })
     };
     attachParentMoveUp(); // 指针拖出 iframe 时也能继续移动
@@ -1182,32 +1193,9 @@ HSP.editor = (function () {
     commit();
     select(clone);
   }
-  function siblingZRange() {
-    if (!selEl || !selEl.parentNode) return { max: 0, min: 0 };
-    var kids = selEl.parentNode.children, max = -Infinity, min = Infinity, any = false;
-    for (var i = 0; i < kids.length; i++) {
-      if (kids[i] === selEl || kids[i].nodeType !== 1) continue;
-      var z = parseFloat(kids[i].style.zIndex);
-      if (isNaN(z)) continue;
-      any = true;
-      if (z > max) max = z;
-      if (z < min) min = z;
-    }
-    if (!any) return { max: 0, min: 0 };
-    return { max: max, min: min };
-  }
-  function bringFront() {
-    if (!selEl) return;
-    var r = siblingZRange();
-    selEl.style.zIndex = r.max + 1;
-    commit();
-  }
-  function sendBack() {
-    if (!selEl) return;
-    var r = siblingZRange();
-    selEl.style.zIndex = Math.max(1, r.min - 1);
-    commit();
-  }
+  /* 置顶 / 置底：与 layerOp 统一走 DOM 顺序（清除 z-index 由 layerOp 处理） */
+  function bringFront() { layerOp('front'); }
+  function sendBack() { layerOp('back'); }
   function toggleBold() {
     if (!selEl) return;
     var cur = getComputedStyle(selEl).fontWeight;
@@ -1388,6 +1376,7 @@ HSP.editor = (function () {
     HSP.player.syncFromDOM();
   }
   function addTextBox() {
+    endTextEdit(); // 先结束可能残留的文字编辑，否则 editingEl 会拦下新建文本框的拖动
     var cur = curSlideEl(); if (!cur) return;
     var div = doc().createElement('div');
     div.className = 'hsp-textbox';
@@ -1399,6 +1388,7 @@ HSP.editor = (function () {
     select(div);
   }
   function addImage(url) {
+    endTextEdit();
     var cur = curSlideEl(); if (!cur || !url) return;
     var img = doc().createElement('img');
     img.setAttribute('draggable', 'false');

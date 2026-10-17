@@ -189,10 +189,10 @@ app.whenReady().then(async () => {
     r = await js(`(function(){ var d=HSP.player.doc(); var el=d.querySelector('section.slide .badge'); el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var cnt0=d.querySelectorAll('section.slide .badge').length; d.dispatchEvent(new KeyboardEvent('keydown',{key:'d',ctrlKey:true,bubbles:true,cancelable:true})); return { before:cnt0, after: d.querySelectorAll('section.slide .badge').length }; })()`);
     check('复制-快捷键Ctrl+D', r.after === r.before + 1, JSON.stringify(r));
 
-    /* ===== 11. 层级 z-index（不会消失） ===== */
-    r = await js(`(function(){ var d=HSP.player.doc(); var el=d.querySelector('section.slide .badge'); el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); document.querySelector('#hsp-tb [data-a="front"]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var z1=parseFloat(el.style.zIndex); document.querySelector('#hsp-tb [data-a="back"]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var z2=parseFloat(el.style.zIndex); document.querySelector('#hsp-tb [data-a="back"]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var z3=parseFloat(el.style.zIndex); return { z1:z1, z2:z2, z3:z3, exists: d.querySelector('section.slide .badge') != null }; })()`);
-    check('层级-上移一层增加', r.z1 > 0, JSON.stringify(r));
-    check('层级-下移不会消失(≥1)', r.z2 >= 1 && r.z3 >= 1 && r.exists === true, JSON.stringify(r));
+    /* ===== 11. 层级（统一 DOM 顺序管理：置顶=末位、置底=首位、清除 z-index） ===== */
+    r = await js(`(function(){ var d=HSP.player.doc(); var el=d.querySelector('section.slide .badge'); var p=el.parentElement; el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); document.querySelector('#hsp-tb [data-a="front"]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var isLast = (p.lastElementChild === el); var zAfterFront = el.style.zIndex; document.querySelector('#hsp-tb [data-a="back"]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var isFirst = (p.firstElementChild === el); return { isLast:isLast, isFirst:isFirst, z:zAfterFront, exists: d.querySelector('section.slide .badge') != null }; })()`);
+    check('层级-置顶(DOM顺序末位)', r.isLast === true && r.z === '', JSON.stringify(r));
+    check('层级-置底(DOM顺序首位)', r.isFirst === true && r.exists === true, JSON.stringify(r));
 
     /* ===== 11b. 拖动带 transform 元素：固化为 left/top 不跳位 ===== */
     await js(`(function(){ var d=HSP.player.doc(); var el=d.querySelector('section.slide .badge'); el.removeAttribute('data-anim'); el.style.transform='translate(10px,10px)'; el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})); var r=el.getBoundingClientRect(); el.dispatchEvent(new PointerEvent('pointerdown',{clientX:r.left+5,clientY:r.top+5,pointerId:40,button:0,buttons:1,bubbles:true,cancelable:true})); el.dispatchEvent(new PointerEvent('pointerup',{pointerId:40,bubbles:true})); })()`);
@@ -370,6 +370,9 @@ app.whenReady().then(async () => {
     await sleep(100);
     r = await js(`HSP.player.doc().querySelector('.hsp-textbox') != null`);
     check('加文本框-UI按钮', r === true);
+    // 新建文本框 left/top 是百分比：拖动应固化为实际像素（旧 bug 会误解析成 15px 跳位）
+    r = await js(`(function(){ var d=HSP.player.doc(); var el=d.querySelector('.hsp-textbox'); if(!el) return { skip:true }; var before=el.style.left; var r0=el.getBoundingClientRect(); el.dispatchEvent(new PointerEvent('pointerdown',{clientX:r0.left+10,clientY:r0.top+10,pointerId:51,button:0,buttons:1,bubbles:true,cancelable:true})); document.dispatchEvent(new PointerEvent('pointermove',{clientX:r0.left+50,clientY:r0.top+50,pointerId:51,bubbles:true})); document.dispatchEvent(new PointerEvent('pointerup',{pointerId:51,bubbles:true})); var after=el.style.left; return { before:before, after:after, isPx: /px$/.test(after), big: parseFloat(after) > 80 }; })()`);
+    check('加文本框-百分比定位可拖动(固化为像素)', r.skip !== true && r.before === '15%' && r.isPx === true && r.big === true, JSON.stringify(r));
 
     /* ===== 15. 图片对话框 / AI助手 / 序列化 ===== */
     await js(`document.getElementById('btn-add-image').click()`);
