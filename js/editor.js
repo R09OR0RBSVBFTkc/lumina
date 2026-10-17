@@ -188,7 +188,43 @@ HSP.editor = (function () {
     updateToolbarFor(selEl);
     syncColorInputs(selEl);
     renderMultiBoxes();
+    renderLayerList();
     refreshInspector(true); // 选中变化必须立即刷新（拖拽过程才节流）
+  }
+  /* 图层列表面板：列出当前页元素（顶层在前），点击选中，直观管理层级 */
+  function renderLayerList() {
+    var box = $parent('layer-list');
+    if (!box) return;
+    var cur = curSlideEl();
+    if (!cur) { box.innerHTML = ''; return; }
+    var kids = Array.prototype.slice.call(cur.children).filter(function (el) {
+      return el.nodeType === 1 && isSelectable(el);
+    });
+    box.innerHTML = '';
+    if (!kids.length) {
+      var empty = document.createElement('div');
+      empty.className = 'layer-empty';
+      empty.textContent = '本页暂无元素';
+      box.appendChild(empty);
+      return;
+    }
+    // 顶层在前：DOM 顺序倒序（appendChild 置顶 → 最后一个 child 在最上层）
+    kids.slice().reverse().forEach(function (el) {
+      var row = document.createElement('div');
+      row.className = 'layer-row' + (selEls.indexOf(el) >= 0 ? ' active' : '');
+      var kind = elKind(el);
+      var tag = document.createElement('span');
+      tag.className = 'layer-tag';
+      tag.textContent = KIND_LABEL[kind] || '元素';
+      var txt = document.createElement('span');
+      txt.className = 'layer-txt';
+      txt.textContent = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 24) || '（空）';
+      row.appendChild(tag);
+      row.appendChild(txt);
+      row.title = (KIND_LABEL[kind] || '元素') + '：' + (el.textContent || '').trim().slice(0, 40);
+      row.addEventListener('click', function () { select(el); });
+      box.appendChild(row);
+    });
   }
   function clearSelection() {
     selEls.forEach(function (x) { try { x.classList.remove('__hsp_moving'); } catch (e2) {} });
@@ -199,6 +235,7 @@ HSP.editor = (function () {
     if (tb) tb.style.display = 'none';
     if (mb) mb.style.display = 'none';
     if (insp) insp.classList.add('hidden');
+    renderLayerList();
   }
   /* 多选时：除主选中外，其余元素各画一个细框（主窗口绘制，不进文档） */
   function renderMultiBoxes() {
@@ -614,6 +651,7 @@ HSP.editor = (function () {
       else if (kind === 'down' && el.previousElementSibling) p.insertBefore(el, el.previousElementSibling);
     });
     updateSelBox();
+    renderLayerList();
     commit();
   }
   /* ---------- 外观 / 文本 / 几何 ---------- */
@@ -1272,6 +1310,7 @@ HSP.editor = (function () {
     injectCursorRule();
     forceAnimEnd();
     if (!bound) bindDoc();
+    renderLayerList();
   }
   /* 编辑模式：把入场动画直接推到结束态（加 .in），元素位置才是它设计时的位置。
      注意：不再用 CSS 覆盖 transform —— 那会破坏用 transform 定位的元素（如 translate(-50%,-50%) 居中）。 */
